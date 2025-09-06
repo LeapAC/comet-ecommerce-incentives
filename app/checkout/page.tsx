@@ -13,6 +13,7 @@ import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check } from "@/components/u
 import { useCart } from "@/lib/cart-context"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import IncentivesCalculator from "@/components/incentives-calculator"
 
 export default function CheckoutPage() {
   const { state, dispatch } = useCart()
@@ -21,6 +22,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [sameAsShipping, setSameAsShipping] = useState(true)
+  const [incentiveAmount, setIncentiveAmount] = useState(0)
 
   const [formData, setFormData] = useState({
     // Shipping Information
@@ -57,7 +59,7 @@ export default function CheckoutPage() {
   const shippingCost =
     formData.shippingMethod === "express" ? 29.99 : formData.shippingMethod === "overnight" ? 49.99 : 9.99
   const tax = state.total * 0.08 // 8% tax
-  const finalTotal = state.total + shippingCost + tax
+  const finalTotal = state.total + shippingCost + tax - incentiveAmount
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -329,6 +331,21 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
+              {/* Incentives Calculator */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Check for Incentives</CardTitle>
+                  <CardDescription>See if you qualify for federal, state, and local incentives</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <IncentivesCalculator 
+                    zipCode={formData.zipCode} 
+                    state={formData.state}
+                    onIncentivesCalculated={setIncentiveAmount}
+                  />
+                </CardContent>
+              </Card>
+
               {/* Payment Information */}
               <Card>
                 <CardHeader>
@@ -430,6 +447,12 @@ export default function CheckoutPage() {
                       <span>Tax</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
+                    {incentiveAmount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Potential Incentives</span>
+                        <span>-${incentiveAmount.toFixed(2)}</span>
+                      </div>
+                    )}
                     <Separator />
                     <div className="flex justify-between font-semibold">
                       <span>Total</span>
