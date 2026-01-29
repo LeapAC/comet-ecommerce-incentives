@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { Zap, Shield, Star, Search, Filter, ShoppingCart } from "@/components/ui/lucide-icons"
+import { Shield, Star, Search, Filter, ShoppingCart } from "@/components/ui/lucide-icons"
 import { CartDrawer } from "@/components/cart-drawer"
 import { MobileNav } from "@/components/mobile-nav"
 import { useCart } from "@/lib/cart-context"
@@ -191,7 +191,7 @@ export default function ProductsPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            <Zap className="h-8 w-8 text-primary" />
+            <img src="/comet.png" alt="Comet" className="h-8 w-8" />
             <span className="text-2xl font-bold text-foreground">Comet</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
@@ -312,7 +312,7 @@ export default function ProductsPage() {
 
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <Zap className="h-4 w-4" />
+                        <Shield className="h-4 w-4" />
                         {product.power}
                       </div>
                       <div className="flex items-center gap-1">
@@ -444,7 +444,7 @@ export default function ProductsPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <Link href="/" className="flex items-center space-x-2">
-                <Zap className="h-6 w-6 text-primary" />
+                <img src="/comet.png" alt="Comet" className="h-6 w-6" />
                 <span className="text-xl font-bold">Comet</span>
               </Link>
               <p className="text-muted-foreground">

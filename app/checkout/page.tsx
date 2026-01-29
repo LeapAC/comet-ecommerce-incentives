@@ -9,11 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check } from "@/components/ui/lucide-icons"
+import { CreditCard, Truck, Shield, ArrowLeft, Check } from "@/components/ui/lucide-icons"
 import { useCart } from "@/lib/cart-context"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import IncentivesCalculator from "@/components/incentives-calculator"
 
 export default function CheckoutPage() {
   const { state, dispatch } = useCart()
@@ -22,7 +21,6 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [sameAsShipping, setSameAsShipping] = useState(true)
-  const [incentiveAmount, setIncentiveAmount] = useState(0)
 
   const [formData, setFormData] = useState({
     // Shipping Information
@@ -58,8 +56,12 @@ export default function CheckoutPage() {
 
   const shippingCost =
     formData.shippingMethod === "express" ? 29.99 : formData.shippingMethod === "overnight" ? 49.99 : 9.99
-  const tax = state.total * 0.08 // 8% tax
-  const finalTotal = state.total + shippingCost + tax - incentiveAmount
+  const upfrontDiscount = 129.99
+  const tax = (state.total - upfrontDiscount) * 0.08 // 8% tax on discounted subtotal
+  const finalTotal = state.total - upfrontDiscount + shippingCost + tax
+  const utilityRebate = 375.0
+  const gridRewards = 75.0
+  const totalAfterInstall = finalTotal - utilityRebate - gridRewards
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -70,7 +72,7 @@ export default function CheckoutPage() {
     setIsProcessing(true)
 
     // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     setIsProcessing(false)
     setOrderComplete(true)
@@ -89,7 +91,7 @@ export default function CheckoutPage() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center space-x-2">
-              <Zap className="h-8 w-8 text-primary" />
+              <img src="/comet.png" alt="Comet" className="h-8 w-8" />
               <span className="text-2xl font-bold text-foreground">Comet</span>
             </Link>
           </div>
@@ -98,7 +100,7 @@ export default function CheckoutPage() {
         <div className="container py-16">
           <div className="text-center space-y-6 max-w-md mx-auto">
             <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-              <Zap className="h-8 w-8 text-muted-foreground" />
+              <img src="/comet.png" alt="Comet" className="h-8 w-8" />
             </div>
             <h1 className="text-2xl font-bold">Your cart is empty</h1>
             <p className="text-muted-foreground">Add some products to your cart before checking out.</p>
@@ -118,28 +120,73 @@ export default function CheckoutPage() {
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center space-x-2">
-              <Zap className="h-8 w-8 text-primary" />
+              <img src="/comet.png" alt="Comet" className="h-8 w-8" />
               <span className="text-2xl font-bold text-foreground">Comet</span>
             </Link>
           </div>
         </header>
 
         <div className="container py-16">
-          <div className="text-center space-y-6 max-w-md mx-auto">
-            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-              <Check className="h-8 w-8 text-primary" />
+          <div className="max-w-2xl mx-auto space-y-8">
+            <div className="text-center space-y-4">
+              <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Check className="h-8 w-8 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold">Order Confirmed!</h1>
+              <p className="text-lg text-muted-foreground">
+                Thank you for your purchase. Your order has been confirmed and will be shipped soon.
+              </p>
             </div>
-            <h1 className="text-2xl font-bold">Order Confirmed!</h1>
-            <p className="text-muted-foreground">
-              Thank you for your purchase. Your order has been confirmed and will be shipped soon.
-            </p>
-            <div className="space-y-2">
-              <Button asChild>
-                <Link href="/products">Continue Shopping</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link href="/">Back to Home</Link>
-              </Button>
+
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardContent className="p-8 text-center space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-primary">Claim Your $500 Rebate</h2>
+                  <p className="text-lg font-medium">Don't miss out on significant savings!</p>
+                </div>
+
+                <div className="space-y-4 text-left max-w-md mx-auto">
+                  <div className="flex items-start space-x-3">
+                    <div className="h-2 w-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Start now, finish later:</strong> Begin your application today and complete it when
+                      convenient
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="h-2 w-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">
+                      <strong>25% pre-filled:</strong> We'll use your order information to speed up the process
+                    </p>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="h-2 w-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                    <p className="text-sm text-muted-foreground">
+                      <strong>Simple next steps:</strong> Just provide site details and utility account info
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Button size="lg" className="w-full max-w-sm">
+                    Start Rebate Application
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Complete installation details and contractor info can be added later
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="text-center space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button variant="outline" asChild>
+                  <Link href="/products">Continue Shopping</Link>
+                </Button>
+                <Button variant="ghost" asChild>
+                  <Link href="/">Back to Home</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -153,7 +200,7 @@ export default function CheckoutPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            <Zap className="h-8 w-8 text-primary" />
+            <img src="/comet.png" alt="Comet" className="h-8 w-8" />
             <span className="text-2xl font-bold text-foreground">Comet</span>
           </Link>
           <Button variant="ghost" size="sm" asChild>
@@ -192,7 +239,6 @@ export default function CheckoutPage() {
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -201,7 +247,6 @@ export default function CheckoutPage() {
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -213,7 +258,6 @@ export default function CheckoutPage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -223,7 +267,6 @@ export default function CheckoutPage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleInputChange("phone", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -233,7 +276,6 @@ export default function CheckoutPage() {
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
-                      required
                     />
                   </div>
                   <div className="grid md:grid-cols-3 gap-4">
@@ -243,7 +285,6 @@ export default function CheckoutPage() {
                         id="city"
                         value={formData.city}
                         onChange={(e) => handleInputChange("city", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -252,7 +293,6 @@ export default function CheckoutPage() {
                         id="state"
                         value={formData.state}
                         onChange={(e) => handleInputChange("state", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -261,7 +301,6 @@ export default function CheckoutPage() {
                         id="zipCode"
                         value={formData.zipCode}
                         onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -331,21 +370,6 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              {/* Incentives Calculator */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Check for Incentives</CardTitle>
-                  <CardDescription>See if you qualify for federal, state, and local incentives</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <IncentivesCalculator 
-                    zipCode={formData.zipCode} 
-                    state={formData.state}
-                    onIncentivesCalculated={setIncentiveAmount}
-                  />
-                </CardContent>
-              </Card>
-
               {/* Payment Information */}
               <Card>
                 <CardHeader>
@@ -362,7 +386,6 @@ export default function CheckoutPage() {
                       id="cardName"
                       value={formData.cardName}
                       onChange={(e) => handleInputChange("cardName", e.target.value)}
-                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -372,7 +395,6 @@ export default function CheckoutPage() {
                       placeholder="1234 5678 9012 3456"
                       value={formData.cardNumber}
                       onChange={(e) => handleInputChange("cardNumber", e.target.value)}
-                      required
                     />
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
@@ -383,7 +405,6 @@ export default function CheckoutPage() {
                         placeholder="MM/YY"
                         value={formData.expiryDate}
                         onChange={(e) => handleInputChange("expiryDate", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -393,7 +414,6 @@ export default function CheckoutPage() {
                         placeholder="123"
                         value={formData.cvv}
                         onChange={(e) => handleInputChange("cvv", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -443,20 +463,34 @@ export default function CheckoutPage() {
                       <span>Shipping</span>
                       <span>${shippingCost.toFixed(2)}</span>
                     </div>
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Upfront Discounts</span>
+                      <span>-${upfrontDiscount.toFixed(2)}</span>
+                    </div>
                     <div className="flex justify-between text-sm">
                       <span>Tax</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
-                    {incentiveAmount > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Potential Incentives</span>
-                        <span>-${incentiveAmount.toFixed(2)}</span>
-                      </div>
-                    )}
                     <Separator />
                     <div className="flex justify-between font-semibold">
                       <span>Total</span>
                       <span>${finalTotal.toFixed(2)}</span>
+                    </div>
+
+                    <div className="pt-2 space-y-2 border-t border-dashed">
+                      <div className="flex justify-between text-sm text-primary">
+                        <span>Utility Rebate</span>
+                        <span>-${utilityRebate.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-primary">
+                        <span>Grid Rewards</span>
+                        <span>-${gridRewards.toFixed(2)}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-bold text-lg text-primary">
+                        <span>Total after Install</span>
+                        <span>${totalAfterInstall.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
 

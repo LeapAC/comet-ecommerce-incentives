@@ -61,7 +61,7 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            <Zap className="h-8 w-8 text-primary" />
+            <img src="/comet.png" alt="Comet" className="h-8 w-8" />
             <span className="text-2xl font-bold text-foreground">Comet</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
@@ -270,7 +270,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <Link href="/" className="flex items-center space-x-2">
-                <Zap className="h-6 w-6 text-primary" />
+                <img src="/comet.png" alt="Comet" className="h-6 w-6" />
                 <span className="text-xl font-bold">Comet</span>
               </Link>
               <p className="text-muted-foreground">
