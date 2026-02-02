@@ -22,7 +22,8 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [sameAsShipping, setSameAsShipping] = useState(true)
-  const [incentiveAmount, setIncentiveAmount] = useState(0)
+  const [revenueAdvance, setRevenueAdvance] = useState(0)
+  const [postInstallCredits, setPostInstallCredits] = useState(0)
 
   const [formData, setFormData] = useState({
     // Shipping Information
@@ -59,7 +60,8 @@ export default function CheckoutPage() {
   const shippingCost =
     formData.shippingMethod === "express" ? 29.99 : formData.shippingMethod === "overnight" ? 49.99 : 9.99
   const tax = state.total * 0.08 // 8% tax
-  const finalTotal = state.total + shippingCost + tax - incentiveAmount
+  const checkoutTotal = state.total + shippingCost + tax - revenueAdvance
+  const totalAfterCredits = checkoutTotal - postInstallCredits
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -341,7 +343,10 @@ export default function CheckoutPage() {
                   <IncentivesCalculator 
                     zipCode={formData.zipCode} 
                     state={formData.state}
-                    onIncentivesCalculated={setIncentiveAmount}
+                    onIncentivesCalculated={(advance, credits) => {
+                      setRevenueAdvance(advance)
+                      setPostInstallCredits(credits)
+                    }}
                   />
                 </CardContent>
               </Card>
@@ -447,21 +452,40 @@ export default function CheckoutPage() {
                       <span>Tax</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
-                    {incentiveAmount > 0 && (
+                    {revenueAdvance > 0 && (
                       <div className="flex justify-between text-sm text-green-600">
-                        <span>Potential Incentives</span>
-                        <span>-${incentiveAmount.toFixed(2)}</span>
+                        <span>Revenue Advance</span>
+                        <span>-${revenueAdvance.toFixed(2)}</span>
                       </div>
                     )}
                     <Separator />
-                    <div className="flex justify-between font-semibold">
+                    <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
-                      <span>${finalTotal.toFixed(2)}</span>
+                      <span>${checkoutTotal.toFixed(2)}</span>
                     </div>
+                    
+                    {postInstallCredits > 0 && (
+                      <>
+                        <Separator className="my-3" />
+                        <div className="pt-2 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Post-Install Credits</span>
+                            <span className="text-green-600 font-medium">-${postInstallCredits.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between font-semibold text-green-700">
+                            <span>Total after Credits</span>
+                            <span>${totalAfterCredits.toFixed(2)}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground pt-1">
+                            Post-install credits are received after installation and don't reduce your checkout total.
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
-                    {isProcessing ? "Processing..." : `Complete Order - $${finalTotal.toFixed(2)}`}
+                    {isProcessing ? "Processing..." : `Complete Order - $${checkoutTotal.toFixed(2)}`}
                   </Button>
 
                   <div className="text-center">
