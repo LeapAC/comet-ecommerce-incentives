@@ -43,9 +43,7 @@ export default function IncentivesCalculator({
   } | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
 
-  const handleCalculate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleCalculate = async () => {
     if (!userZip || userZip.length !== 5) {
       return
     }
@@ -74,10 +72,13 @@ export default function IncentivesCalculator({
     setCalculatedIncentives(incentives)
     setIsCalculating(false)
     
-    // For now, we'll pass the total as revenueAdvance=0, postInstallCredits=total
-    // The user can adjust this split in the actual implementation
+    // Revenue Advance = immediate discount at checkout (utility rebate + part of state)
+    // Post-Install Credits = received after installation (federal tax credit + remaining)
+    const revenueAdvanceAmount = utility + Math.floor(stateRebate / 2) // Utility + half state as upfront
+    const postInstallAmount = federal + Math.ceil(stateRebate / 2) // Federal + rest of state as post-install
+    
     if (onIncentivesCalculated) {
-      onIncentivesCalculated(0, total)
+      onIncentivesCalculated(revenueAdvanceAmount, postInstallAmount)
     }
   }
 
@@ -92,7 +93,7 @@ export default function IncentivesCalculator({
   return (
     <div className="w-full space-y-4">
       {!calculatedIncentives ? (
-        <form onSubmit={handleCalculate} className="space-y-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="incentive-zip">ZIP Code</Label>
             <div className="flex gap-2">
@@ -101,14 +102,13 @@ export default function IncentivesCalculator({
                 type="text"
                 placeholder="Enter your ZIP code"
                 value={userZip}
-                onChange={(e) => setUserZip(e.target.value.slice(0, 5))}
+                onChange={(e) => setUserZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
                 maxLength={5}
-                pattern="[0-9]*"
-                required
                 className="flex-1"
               />
               <Button 
-                type="submit" 
+                type="button"
+                onClick={handleCalculate}
                 disabled={isCalculating || userZip.length !== 5}
               >
                 {isCalculating ? "Calculating..." : "Calculate"}
@@ -123,7 +123,7 @@ export default function IncentivesCalculator({
               </p>
             </div>
           </div>
-        </form>
+        </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
