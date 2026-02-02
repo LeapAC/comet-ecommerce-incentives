@@ -342,7 +342,7 @@ export default function CheckoutPage() {
                 <CardContent>
                   <IncentivesCalculator 
                     zipCode={formData.zipCode} 
-                    state={formData.state}
+                    productPrice={state.total}
                     onIncentivesCalculated={(advance, credits) => {
                       setRevenueAdvance(advance)
                       setPostInstallCredits(credits)
@@ -452,32 +452,37 @@ export default function CheckoutPage() {
                       <span>Tax</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
+                    
                     {revenueAdvance > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Revenue Advance</span>
-                        <span>-${revenueAdvance.toFixed(2)}</span>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-blue-600 font-medium">Upfront Credit</span>
+                        <span className="text-blue-600 font-medium">-${revenueAdvance.toFixed(2)}</span>
                       </div>
                     )}
+                    
                     <Separator />
+                    
                     <div className="flex justify-between font-semibold text-lg">
-                      <span>Total</span>
+                      <span>Total Due Today</span>
                       <span>${checkoutTotal.toFixed(2)}</span>
                     </div>
                     
                     {postInstallCredits > 0 && (
                       <>
                         <Separator className="my-3" />
-                        <div className="pt-2 space-y-2">
+                        <div className="pt-2 space-y-2 p-3 bg-green-50 rounded-lg border border-green-100">
+                          <p className="text-xs font-medium text-green-700 uppercase tracking-wide">Post-Purchase Credits</p>
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Post-Install Credits</span>
-                            <span className="text-green-600 font-medium">-${postInstallCredits.toFixed(2)}</span>
+                            <span className="text-green-700">Future rebates & credits</span>
+                            <span className="text-green-600 font-semibold">+${postInstallCredits.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between font-semibold text-green-700">
-                            <span>Total after Credits</span>
-                            <span>${totalAfterCredits.toFixed(2)}</span>
+                          <Separator className="bg-green-200" />
+                          <div className="flex justify-between font-semibold">
+                            <span className="text-green-800">Effective Price</span>
+                            <span className="text-green-700">${totalAfterCredits.toFixed(2)}</span>
                           </div>
-                          <p className="text-xs text-muted-foreground pt-1">
-                            Post-install credits are received after installation and don't reduce your checkout total.
+                          <p className="text-xs text-green-600/80 pt-1">
+                            These credits are received after installation and verification.
                           </p>
                         </div>
                       </>
