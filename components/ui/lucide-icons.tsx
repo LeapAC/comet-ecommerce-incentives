@@ -380,3 +380,41 @@ export function Pencil({ className, ...props }: { className?: string; [key: stri
     </svg>
   )
 }
+
+export function ChevronDown({ className, ...props }: { className?: string; [key: string]: any }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="24"
+      {...props}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+export function ChevronUp({ className, ...props }: { className?: string; [key: string]: any }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      width="24"
+      {...props}
+    >
+      <path d="m18 15-6-6-6 6" />
+    </svg>
+  )
+}

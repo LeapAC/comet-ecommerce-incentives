@@ -24,6 +24,7 @@ export default function CheckoutPage() {
   const [sameAsShipping, setSameAsShipping] = useState(true)
   const [revenueAdvance, setRevenueAdvance] = useState(0)
   const [postInstallCredits, setPostInstallCredits] = useState(0)
+  const [incentivesOptedIn, setIncentivesOptedIn] = useState(false)
 
   const [formData, setFormData] = useState({
     // Shipping Information
@@ -343,9 +344,10 @@ export default function CheckoutPage() {
                   <IncentivesCalculator 
                     zipCode={formData.zipCode} 
                     productPrice={state.total}
-                    onIncentivesCalculated={(advance, credits) => {
+                    onIncentivesCalculated={(advance, credits, optedIn) => {
                       setRevenueAdvance(advance)
                       setPostInstallCredits(credits)
+                      setIncentivesOptedIn(optedIn)
                     }}
                   />
                 </CardContent>
@@ -454,36 +456,28 @@ export default function CheckoutPage() {
                     </div>
                     
                     {revenueAdvance > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-blue-600 font-medium">Upfront Credit</span>
-                        <span className="text-blue-600 font-medium">-${revenueAdvance.toFixed(2)}</span>
+                      <div className="flex justify-between text-sm text-emerald-700">
+                        <span>Upfront Credit</span>
+                        <span>−${revenueAdvance.toFixed(2)}</span>
                       </div>
                     )}
                     
                     <Separator />
                     
-                    <div className="flex justify-between font-semibold text-lg">
-                      <span>Total Due Today</span>
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
                       <span>${checkoutTotal.toFixed(2)}</span>
                     </div>
                     
                     {postInstallCredits > 0 && (
                       <>
-                        <Separator className="my-3" />
-                        <div className="pt-2 space-y-2 p-3 bg-green-50 rounded-lg border border-green-100">
-                          <p className="text-xs font-medium text-green-700 uppercase tracking-wide">Post-Purchase Credits</p>
-                          <div className="flex justify-between text-sm">
-                            <span className="text-green-700">Future rebates & credits</span>
-                            <span className="text-green-600 font-semibold">+${postInstallCredits.toFixed(2)}</span>
-                          </div>
-                          <Separator className="bg-green-200" />
-                          <div className="flex justify-between font-semibold">
-                            <span className="text-green-800">Effective Price</span>
-                            <span className="text-green-700">${totalAfterCredits.toFixed(2)}</span>
-                          </div>
-                          <p className="text-xs text-green-600/80 pt-1">
-                            These credits are received after installation and verification.
-                          </p>
+                        <div className="flex justify-between text-sm text-muted-foreground pt-1">
+                          <span>Post-purchase credits</span>
+                          <span>+${postInstallCredits.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Effective price</span>
+                          <span className="text-emerald-700 font-medium">${totalAfterCredits.toFixed(2)}</span>
                         </div>
                       </>
                     )}
@@ -495,7 +489,14 @@ export default function CheckoutPage() {
 
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">
-                      By placing your order, you agree to our Terms of Service and Privacy Policy
+                      By placing your order, you agree to our{" "}
+                      {incentivesOptedIn && (
+                        <>
+                          <a href="#" className="text-primary hover:underline">Incentive Terms</a>,{" "}
+                        </>
+                      )}
+                      <a href="#" className="text-primary hover:underline">Terms of Service</a>, and{" "}
+                      <a href="#" className="text-primary hover:underline">Privacy Policy</a>
                     </p>
                   </div>
                 </CardContent>

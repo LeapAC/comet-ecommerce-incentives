@@ -4,10 +4,8 @@ import React, { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
-import { Pencil } from "@/components/ui/lucide-icons"
+import { Pencil, ChevronDown, ChevronUp } from "@/components/ui/lucide-icons"
 
 interface IncentiveItem {
   name: string
@@ -19,7 +17,7 @@ interface IncentiveItem {
 interface IncentivesCalculatorProps {
   zipCode?: string
   productPrice?: number
-  onIncentivesCalculated?: (revenueAdvance: number, postInstallCredits: number) => void
+  onIncentivesCalculated?: (revenueAdvance: number, postInstallCredits: number, optedIn: boolean) => void
 }
 
 export default function IncentivesCalculator({ 
@@ -29,6 +27,9 @@ export default function IncentivesCalculator({
 }: IncentivesCalculatorProps) {
   const [userZip, setUserZip] = useState(zipCode)
   const [isEditing, setIsEditing] = useState(false)
+  const [optedIn, setOptedIn] = useState(false)
+  const [showUpfrontDetails, setShowUpfrontDetails] = useState(false)
+  const [showPostPurchaseDetails, setShowPostPurchaseDetails] = useState(false)
   const [calculatedIncentives, setCalculatedIncentives] = useState<{
     items: IncentiveItem[]
     upfrontTotal: number
@@ -44,14 +45,7 @@ export default function IncentivesCalculator({
     }
 
     setIsCalculating(true)
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 600))
-    
-    // Calculate incentives based on requirements:
-    // - Revenue Advance: $350 (upfront)
-    // - PG&E Residential Charging Solutions: 50% of purchase price (post-purchase)
-    // - Carbon Credits: $120 (post-purchase)
+    await new Promise(resolve => setTimeout(resolve, 500))
     
     const revenueAdvance = 350
     const pgeRebate = Math.round(productPrice * 0.5)
@@ -78,38 +72,38 @@ export default function IncentivesCalculator({
       }
     ]
     
-    const upfrontTotal = items
-      .filter(i => i.type === "upfront")
-      .reduce((sum, i) => sum + i.amount, 0)
+    const upfrontTotal = items.filter(i => i.type === "upfront").reduce((sum, i) => sum + i.amount, 0)
+    const postPurchaseTotal = items.filter(i => i.type === "post-purchase").reduce((sum, i) => sum + i.amount, 0)
     
-    const postPurchaseTotal = items
-      .filter(i => i.type === "post-purchase")
-      .reduce((sum, i) => sum + i.amount, 0)
-    
-    const incentives = {
+    setCalculatedIncentives({
       items,
       upfrontTotal,
       postPurchaseTotal,
       grandTotal: upfrontTotal + postPurchaseTotal
-    }
-    
-    setCalculatedIncentives(incentives)
+    })
     setIsCalculating(false)
     setIsEditing(false)
-    
-    if (onIncentivesCalculated) {
-      onIncentivesCalculated(upfrontTotal, postPurchaseTotal)
-    }
-  }, [productPrice, onIncentivesCalculated])
+  }, [productPrice])
 
-  // Auto-run when zipCode prop changes (from shipping address)
+  // Notify parent when opt-in changes
+  useEffect(() => {
+    if (calculatedIncentives && onIncentivesCalculated) {
+      if (optedIn) {
+        onIncentivesCalculated(calculatedIncentives.upfrontTotal, calculatedIncentives.postPurchaseTotal, true)
+      } else {
+        onIncentivesCalculated(0, 0, false)
+      }
+    }
+  }, [optedIn, calculatedIncentives, onIncentivesCalculated])
+
+  // Auto-populate ZIP from props
   useEffect(() => {
     if (zipCode && zipCode.length === 5 && zipCode !== userZip) {
       setUserZip(zipCode)
     }
   }, [zipCode])
 
-  // Auto-calculate when userZip is valid and we haven't auto-run yet
+  // Auto-calculate when ZIP is valid
   useEffect(() => {
     if (userZip && userZip.length === 5 && !hasAutoRun && !calculatedIncentives) {
       setHasAutoRun(true)
@@ -124,158 +118,151 @@ export default function IncentivesCalculator({
   const handleReset = () => {
     setCalculatedIncentives(null)
     setHasAutoRun(false)
+    setOptedIn(false)
     if (onIncentivesCalculated) {
-      onIncentivesCalculated(0, 0)
+      onIncentivesCalculated(0, 0, false)
     }
-  }
-
-  const handleEditZip = () => {
-    setIsEditing(true)
   }
 
   const upfrontItems = calculatedIncentives?.items.filter(i => i.type === "upfront") || []
   const postPurchaseItems = calculatedIncentives?.items.filter(i => i.type === "post-purchase") || []
 
-  return (
-    <div className="w-full space-y-4">
-      {!calculatedIncentives || isEditing ? (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="incentive-zip">ZIP Code</Label>
-            <div className="flex gap-2">
-              <Input
-                id="incentive-zip"
-                type="text"
-                placeholder="Enter your ZIP code"
-                value={userZip}
-                onChange={(e) => setUserZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-                maxLength={5}
-                className="flex-1"
-              />
-              <Button 
-                type="button"
-                onClick={handleManualCalculate}
-                disabled={isCalculating || userZip.length !== 5}
-              >
-                {isCalculating ? "Checking..." : "Check Incentives"}
-              </Button>
-            </div>
-            {zipCode && zipCode.length === 5 && (
-              <p className="text-xs text-muted-foreground">
-                Pre-filled from your shipping address
-              </p>
-            )}
-          </div>
-          
-          {!calculatedIncentives && (
-            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg text-sm">
-              <div className="flex-1">
-                <p className="text-muted-foreground">
-                  Enter your ZIP code to see available incentives for your EV charger purchase.
-                </p>
-              </div>
-            </div>
-          )}
+  // ZIP entry state (no results yet)
+  if (!calculatedIncentives || isEditing) {
+    return (
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Enter ZIP code"
+            value={userZip}
+            onChange={(e) => setUserZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
+            maxLength={5}
+            className="flex-1 h-9"
+          />
+          <Button 
+            type="button"
+            size="sm"
+            onClick={handleManualCalculate}
+            disabled={isCalculating || userZip.length !== 5}
+          >
+            {isCalculating ? "..." : "Check"}
+          </Button>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold">Available Incentives</h3>
-              <button 
-                onClick={handleEditZip}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <span>ZIP: {userZip}</span>
-                <Pencil className="h-3 w-3" />
-              </button>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              Clear
-            </Button>
+        {zipCode && zipCode.length === 5 && (
+          <p className="text-xs text-muted-foreground">Using shipping ZIP</p>
+        )}
+      </div>
+    )
+  }
+
+  // Results state
+  return (
+    <div className="space-y-4">
+      {/* Header with ZIP */}
+      <div className="flex items-center justify-between">
+        <button 
+          onClick={() => setIsEditing(true)}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span>ZIP {userZip}</span>
+          <Pencil className="h-3 w-3" />
+        </button>
+        <button 
+          onClick={handleReset}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          Reset
+        </button>
+      </div>
+
+      {/* Opt-in toggle */}
+      <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
+        <input
+          type="checkbox"
+          checked={optedIn}
+          onChange={(e) => setOptedIn(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-gray-300"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="font-medium text-sm">Apply incentives</span>
+            <span className="text-sm font-semibold">${calculatedIncentives.grandTotal.toLocaleString()} savings</span>
           </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            ${calculatedIncentives.upfrontTotal} off today · ${calculatedIncentives.postPurchaseTotal} post-purchase
+          </p>
+        </div>
+      </label>
 
-          {/* Upfront Credits Section */}
-          <Card className="border-blue-200 bg-blue-50/50">
-            <CardContent className="pt-4 space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                  Upfront Credits
-                </Badge>
-                <span className="text-xs text-muted-foreground">Applied at checkout</span>
+      {/* Collapsible details - only show when opted in */}
+      {optedIn && (
+        <div className="space-y-2 text-sm">
+          {/* Upfront Credits Accordion */}
+          <div className="border rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowUpfrontDetails(!showUpfrontDetails)}
+              className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Upfront Credit</span>
+                <span className="text-muted-foreground">−${calculatedIncentives.upfrontTotal}</span>
               </div>
-              
-              {upfrontItems.map((item, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium text-sm">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.description}</p>
-                  </div>
-                  <p className="font-semibold text-blue-600">-${item.amount.toLocaleString()}</p>
-                </div>
-              ))}
-              
-              <Separator className="bg-blue-200" />
-              
-              <div className="flex justify-between items-center">
-                <p className="font-semibold text-sm">Upfront Savings</p>
-                <p className="font-bold text-blue-600">-${calculatedIncentives.upfrontTotal.toLocaleString()}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Post-Purchase Credits Section */}
-          <Card className="border-green-200 bg-green-50/50">
-            <CardContent className="pt-4 space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">
-                  Post-Purchase Credits
-                </Badge>
-                <span className="text-xs text-muted-foreground">After installation</span>
-              </div>
-              
-              {postPurchaseItems.map((item, index) => (
-                <React.Fragment key={index}>
-                  {index > 0 && <Separator className="bg-green-200" />}
-                  <div className="flex justify-between items-center">
+              {showUpfrontDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {showUpfrontDetails && (
+              <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
+                {upfrontItems.map((item, i) => (
+                  <div key={i} className="flex justify-between py-1.5">
                     <div>
-                      <p className="font-medium text-sm">{item.name}</p>
+                      <p className="text-sm">{item.name}</p>
                       <p className="text-xs text-muted-foreground">{item.description}</p>
                     </div>
-                    <p className="font-semibold text-green-600">${item.amount.toLocaleString()}</p>
+                    <span className="text-sm">−${item.amount}</span>
                   </div>
-                </React.Fragment>
-              ))}
-              
-              <Separator className="bg-green-200" />
-              
-              <div className="flex justify-between items-center">
-                <p className="font-semibold text-sm">Post-Purchase Savings</p>
-                <p className="font-bold text-green-600">${calculatedIncentives.postPurchaseTotal.toLocaleString()}</p>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Total */}
-          <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-            <p className="font-bold">Total Potential Savings</p>
-            <p className="font-bold text-lg">${calculatedIncentives.grandTotal.toLocaleString()}</p>
+            )}
           </div>
 
-          <div className="flex items-center justify-center gap-2 p-3 bg-muted/50 rounded-lg">
-            <svg 
-              className="h-4 w-4 opacity-60" 
-              viewBox="0 0 24 24" 
-              fill="currentColor"
+          {/* Post-Purchase Credits Accordion */}
+          <div className="border rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowPostPurchaseDetails(!showPostPurchaseDetails)}
+              className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
             >
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            <p className="text-xs text-muted-foreground">
-              Powered by <span className="font-medium">Leap</span>
-            </p>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Post-Purchase Credits</span>
+                <span className="text-muted-foreground">+${calculatedIncentives.postPurchaseTotal}</span>
+              </div>
+              {showPostPurchaseDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {showPostPurchaseDetails && (
+              <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
+                {postPurchaseItems.map((item, i) => (
+                  <div key={i} className="flex justify-between py-1.5">
+                    <div>
+                      <p className="text-sm">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                    </div>
+                    <span className="text-sm">+${item.amount}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
+
+      {/* Powered by */}
+      <div className="flex items-center justify-center gap-1.5 pt-2">
+        <svg className="h-3 w-3 opacity-40" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <p className="text-[10px] text-muted-foreground">
+          Powered by <span className="font-medium">Leap</span>
+        </p>
+      </div>
     </div>
   )
 }
