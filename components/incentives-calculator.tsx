@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Pencil, ChevronDown, ChevronUp } from "@/components/ui/lucide-icons"
 
@@ -40,9 +39,7 @@ export default function IncentivesCalculator({
   const [hasAutoRun, setHasAutoRun] = useState(false)
 
   const calculateIncentives = useCallback(async (zip: string) => {
-    if (!zip || zip.length !== 5) {
-      return
-    }
+    if (!zip || zip.length !== 5) return
 
     setIsCalculating(true)
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -52,58 +49,35 @@ export default function IncentivesCalculator({
     const carbonCredits = 120
     
     const items: IncentiveItem[] = [
-      {
-        name: "Revenue Advance",
-        description: "Instant discount at checkout",
-        amount: revenueAdvance,
-        type: "upfront"
-      },
-      {
-        name: "PG&E Residential Charging Solutions",
-        description: "50% rebate after installation verification",
-        amount: pgeRebate,
-        type: "post-purchase"
-      },
-      {
-        name: "Carbon Credits",
-        description: "Environmental offset credits",
-        amount: carbonCredits,
-        type: "post-purchase"
-      }
+      { name: "Revenue Advance", description: "Instant discount at checkout", amount: revenueAdvance, type: "upfront" },
+      { name: "PG&E Residential Charging Solutions", description: "50% rebate after installation verification", amount: pgeRebate, type: "post-purchase" },
+      { name: "Carbon Credits", description: "Environmental offset credits", amount: carbonCredits, type: "post-purchase" }
     ]
     
     const upfrontTotal = items.filter(i => i.type === "upfront").reduce((sum, i) => sum + i.amount, 0)
     const postPurchaseTotal = items.filter(i => i.type === "post-purchase").reduce((sum, i) => sum + i.amount, 0)
     
-    setCalculatedIncentives({
-      items,
-      upfrontTotal,
-      postPurchaseTotal,
-      grandTotal: upfrontTotal + postPurchaseTotal
-    })
+    setCalculatedIncentives({ items, upfrontTotal, postPurchaseTotal, grandTotal: upfrontTotal + postPurchaseTotal })
     setIsCalculating(false)
     setIsEditing(false)
   }, [productPrice])
 
-  // Notify parent when opt-in changes
   useEffect(() => {
     if (calculatedIncentives && onIncentivesCalculated) {
-      if (optedIn) {
-        onIncentivesCalculated(calculatedIncentives.upfrontTotal, calculatedIncentives.postPurchaseTotal, true)
-      } else {
-        onIncentivesCalculated(0, 0, false)
-      }
+      onIncentivesCalculated(
+        optedIn ? calculatedIncentives.upfrontTotal : 0,
+        optedIn ? calculatedIncentives.postPurchaseTotal : 0,
+        optedIn
+      )
     }
   }, [optedIn, calculatedIncentives, onIncentivesCalculated])
 
-  // Auto-populate ZIP from props
   useEffect(() => {
     if (zipCode && zipCode.length === 5 && zipCode !== userZip) {
       setUserZip(zipCode)
     }
   }, [zipCode])
 
-  // Auto-calculate when ZIP is valid
   useEffect(() => {
     if (userZip && userZip.length === 5 && !hasAutoRun && !calculatedIncentives) {
       setHasAutoRun(true)
@@ -111,157 +85,155 @@ export default function IncentivesCalculator({
     }
   }, [userZip, hasAutoRun, calculatedIncentives, calculateIncentives])
 
-  const handleManualCalculate = () => {
-    calculateIncentives(userZip)
-  }
-
   const handleReset = () => {
     setCalculatedIncentives(null)
     setHasAutoRun(false)
     setOptedIn(false)
-    if (onIncentivesCalculated) {
-      onIncentivesCalculated(0, 0, false)
-    }
+    onIncentivesCalculated?.(0, 0, false)
   }
 
   const upfrontItems = calculatedIncentives?.items.filter(i => i.type === "upfront") || []
   const postPurchaseItems = calculatedIncentives?.items.filter(i => i.type === "post-purchase") || []
 
-  // ZIP entry state (no results yet)
+  // ZIP entry state
   if (!calculatedIncentives || isEditing) {
     return (
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Enter ZIP code"
-            value={userZip}
-            onChange={(e) => setUserZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
-            maxLength={5}
-            className="flex-1 h-9"
-          />
-          <Button 
-            type="button"
-            size="sm"
-            onClick={handleManualCalculate}
-            disabled={isCalculating || userZip.length !== 5}
-          >
-            {isCalculating ? "..." : "Check"}
-          </Button>
+      <div className="border rounded-lg p-4 bg-muted/30">
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Enter ZIP code"
+              value={userZip}
+              onChange={(e) => setUserZip(e.target.value.replace(/\D/g, '').slice(0, 5))}
+              maxLength={5}
+              className="flex-1 h-9 bg-background"
+            />
+            <Button 
+              type="button"
+              size="sm"
+              variant="default"
+              onClick={() => calculateIncentives(userZip)}
+              disabled={isCalculating || userZip.length !== 5}
+            >
+              {isCalculating ? "..." : "Check"}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {zipCode && zipCode.length === 5 ? "Using your shipping ZIP" : "Enter ZIP to check available incentives"}
+          </p>
         </div>
-        {zipCode && zipCode.length === 5 && (
-          <p className="text-xs text-muted-foreground">Using shipping ZIP</p>
-        )}
       </div>
     )
   }
 
-  // Results state
+  // Results state - unified component
   return (
-    <div className="space-y-4">
-      {/* Header with ZIP */}
-      <div className="flex items-center justify-between">
-        <button 
-          onClick={() => setIsEditing(true)}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <span>ZIP {userZip}</span>
-          <Pencil className="h-3 w-3" />
-        </button>
-        <button 
-          onClick={handleReset}
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
+    <div className="border rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 bg-muted/40 border-b flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">Incentives for {userZip}</span>
+          <button onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
+            <Pencil className="h-3 w-3" />
+          </button>
+        </div>
+        <button onClick={handleReset} className="text-xs text-muted-foreground hover:text-foreground">
           Reset
         </button>
       </div>
 
-      {/* Opt-in toggle */}
-      <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/30 transition-colors">
-        <input
-          type="checkbox"
-          checked={optedIn}
-          onChange={(e) => setOptedIn(e.target.checked)}
-          className="mt-0.5 h-4 w-4 rounded border-gray-300"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="font-medium text-sm">Apply incentives</span>
-            <span className="text-sm font-semibold">${calculatedIncentives.grandTotal.toLocaleString()} savings</span>
+      {/* Main content */}
+      <div className="p-4 space-y-4">
+        {/* Opt-in */}
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={optedIn}
+            onChange={(e) => setOptedIn(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <div className="flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-sm font-medium group-hover:text-primary transition-colors">Include incentives</span>
+              <span className="text-sm font-semibold">${calculatedIncentives.grandTotal} total</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              ${calculatedIncentives.upfrontTotal} off today + ${calculatedIncentives.postPurchaseTotal} after install
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            ${calculatedIncentives.upfrontTotal} off today · ${calculatedIncentives.postPurchaseTotal} post-purchase
-          </p>
-        </div>
-      </label>
+        </label>
 
-      {/* Collapsible details - only show when opted in */}
-      {optedIn && (
-        <div className="space-y-2 text-sm">
-          {/* Upfront Credits Accordion */}
-          <div className="border rounded-lg overflow-hidden">
-            <button
-              onClick={() => setShowUpfrontDetails(!showUpfrontDetails)}
-              className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
-            >
-              <div className="flex items-center gap-2">
+        {/* Details (only when opted in) */}
+        {optedIn && (
+          <div className="space-y-2 pt-2">
+            <Separator />
+            
+            {/* Upfront Credit Accordion */}
+            <div className="rounded border overflow-hidden">
+              <button
+                onClick={() => setShowUpfrontDetails(!showUpfrontDetails)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-muted/30 transition-colors"
+              >
                 <span className="font-medium">Upfront Credit</span>
-                <span className="text-muted-foreground">−${calculatedIncentives.upfrontTotal}</span>
-              </div>
-              {showUpfrontDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
-            {showUpfrontDetails && (
-              <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
-                {upfrontItems.map((item, i) => (
-                  <div key={i} className="flex justify-between py-1.5">
-                    <div>
-                      <p className="text-sm">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-emerald-700">${calculatedIncentives.upfrontTotal}</span>
+                  {showUpfrontDetails ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                </div>
+              </button>
+              {showUpfrontDetails && (
+                <div className="px-3 pb-3 pt-1 border-t bg-muted/20 space-y-2">
+                  {upfrontItems.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <div>
+                        <p>{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                      </div>
+                      <span>${item.amount}</span>
                     </div>
-                    <span className="text-sm">−${item.amount}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Post-Purchase Credits Accordion */}
-          <div className="border rounded-lg overflow-hidden">
-            <button
-              onClick={() => setShowPostPurchaseDetails(!showPostPurchaseDetails)}
-              className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
-            >
-              <div className="flex items-center gap-2">
+            {/* Post-Purchase Accordion */}
+            <div className="rounded border overflow-hidden">
+              <button
+                onClick={() => setShowPostPurchaseDetails(!showPostPurchaseDetails)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-muted/30 transition-colors"
+              >
                 <span className="font-medium">Post-Purchase Credits</span>
-                <span className="text-muted-foreground">+${calculatedIncentives.postPurchaseTotal}</span>
-              </div>
-              {showPostPurchaseDetails ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
-            {showPostPurchaseDetails && (
-              <div className="px-3 pb-3 pt-1 border-t bg-muted/20">
-                {postPurchaseItems.map((item, i) => (
-                  <div key={i} className="flex justify-between py-1.5">
-                    <div>
-                      <p className="text-sm">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-violet-600">${calculatedIncentives.postPurchaseTotal}</span>
+                  {showPostPurchaseDetails ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                </div>
+              </button>
+              {showPostPurchaseDetails && (
+                <div className="px-3 pb-3 pt-1 border-t bg-muted/20 space-y-2">
+                  {postPurchaseItems.map((item, i) => (
+                    <div key={i} className="flex justify-between text-sm">
+                      <div>
+                        <p>{item.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.description}</p>
+                      </div>
+                      <span>${item.amount}</span>
                     </div>
-                    <span className="text-sm">+${item.amount}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Powered by */}
-      <div className="flex items-center justify-center gap-1.5 pt-2">
+      {/* Footer */}
+      <div className="px-4 py-2 bg-muted/20 border-t flex items-center justify-center gap-1.5">
         <svg className="h-3 w-3 opacity-40" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
-        <p className="text-[10px] text-muted-foreground">
+        <span className="text-[10px] text-muted-foreground">
           Powered by <span className="font-medium">Leap</span>
-        </p>
+        </span>
       </div>
     </div>
   )

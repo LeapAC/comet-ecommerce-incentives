@@ -471,13 +471,13 @@ export default function CheckoutPage() {
                     
                     {postInstallCredits > 0 && (
                       <>
-                        <div className="flex justify-between text-sm text-muted-foreground pt-1">
+                        <div className="flex justify-between text-sm text-violet-600 pt-1">
                           <span>Post-purchase credits</span>
-                          <span>+${postInstallCredits.toFixed(2)}</span>
+                          <span>${postInstallCredits.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-sm text-violet-700 font-medium">
                           <span>Effective price</span>
-                          <span className="text-emerald-700 font-medium">${totalAfterCredits.toFixed(2)}</span>
+                          <span>${totalAfterCredits.toFixed(2)}</span>
                         </div>
                       </>
                     )}
