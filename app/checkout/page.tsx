@@ -22,7 +22,9 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [orderComplete, setOrderComplete] = useState(false)
   const [sameAsShipping, setSameAsShipping] = useState(true)
-  const [incentiveAmount, setIncentiveAmount] = useState(0)
+  const [revenueAdvance, setRevenueAdvance] = useState(0)
+  const [postInstallCredits, setPostInstallCredits] = useState(0)
+  const [incentivesOptedIn, setIncentivesOptedIn] = useState(false)
 
   const [formData, setFormData] = useState({
     // Shipping Information
@@ -59,7 +61,8 @@ export default function CheckoutPage() {
   const shippingCost =
     formData.shippingMethod === "express" ? 29.99 : formData.shippingMethod === "overnight" ? 49.99 : 9.99
   const tax = state.total * 0.08 // 8% tax
-  const finalTotal = state.total + shippingCost + tax - incentiveAmount
+  const checkoutTotal = state.total + shippingCost + tax - revenueAdvance
+  const totalAfterCredits = checkoutTotal - postInstallCredits
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -340,8 +343,12 @@ export default function CheckoutPage() {
                 <CardContent>
                   <IncentivesCalculator 
                     zipCode={formData.zipCode} 
-                    state={formData.state}
-                    onIncentivesCalculated={setIncentiveAmount}
+                    productPrice={state.total}
+                    onIncentivesCalculated={(advance, credits, optedIn) => {
+                      setRevenueAdvance(advance)
+                      setPostInstallCredits(credits)
+                      setIncentivesOptedIn(optedIn)
+                    }}
                   />
                 </CardContent>
               </Card>
@@ -447,26 +454,49 @@ export default function CheckoutPage() {
                       <span>Tax</span>
                       <span>${tax.toFixed(2)}</span>
                     </div>
-                    {incentiveAmount > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Potential Incentives</span>
-                        <span>-${incentiveAmount.toFixed(2)}</span>
+                    
+                    {revenueAdvance > 0 && (
+                      <div className="flex justify-between text-sm text-emerald-700">
+                        <span>Upfront Credit</span>
+                        <span>−${revenueAdvance.toFixed(2)}</span>
                       </div>
                     )}
+                    
                     <Separator />
+                    
                     <div className="flex justify-between font-semibold">
                       <span>Total</span>
-                      <span>${finalTotal.toFixed(2)}</span>
+                      <span>${checkoutTotal.toFixed(2)}</span>
                     </div>
+                    
+                    {postInstallCredits > 0 && (
+                      <>
+                        <div className="flex justify-between text-sm text-violet-600 pt-1">
+                          <span>Post-purchase credits</span>
+                          <span>${postInstallCredits.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-violet-700 font-medium">
+                          <span>Effective price</span>
+                          <span>${totalAfterCredits.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <Button type="submit" className="w-full" size="lg" disabled={isProcessing}>
-                    {isProcessing ? "Processing..." : `Complete Order - $${finalTotal.toFixed(2)}`}
+                    {isProcessing ? "Processing..." : `Complete Order - $${checkoutTotal.toFixed(2)}`}
                   </Button>
 
                   <div className="text-center">
                     <p className="text-xs text-muted-foreground">
-                      By placing your order, you agree to our Terms of Service and Privacy Policy
+                      By placing your order, you agree to our{" "}
+                      {incentivesOptedIn && (
+                        <>
+                          <a href="#" className="text-primary hover:underline">Incentive Terms</a>,{" "}
+                        </>
+                      )}
+                      <a href="#" className="text-primary hover:underline">Terms of Service</a>, and{" "}
+                      <a href="#" className="text-primary hover:underline">Privacy Policy</a>
                     </p>
                   </div>
                 </CardContent>
