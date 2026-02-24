@@ -39,7 +39,7 @@ export default function IncentivesCalculator({
   const [hasAutoRun, setHasAutoRun] = useState(false)
 
   const calculateIncentives = useCallback(async (zip: string) => {
-    if (!zip || zip.length !== 5) return
+    if (!zip) return
 
     setIsCalculating(true)
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -73,13 +73,13 @@ export default function IncentivesCalculator({
   }, [optedIn, calculatedIncentives, onIncentivesCalculated])
 
   useEffect(() => {
-    if (zipCode && zipCode.length === 5 && zipCode !== userZip) {
+    if (zipCode && zipCode !== userZip) {
       setUserZip(zipCode)
     }
   }, [zipCode])
 
   useEffect(() => {
-    if (userZip && userZip.length === 5 && !hasAutoRun && !calculatedIncentives) {
+    if (userZip && !hasAutoRun && !calculatedIncentives) {
       setHasAutoRun(true)
       calculateIncentives(userZip)
     }
@@ -114,13 +114,13 @@ export default function IncentivesCalculator({
               size="sm"
               variant="default"
               onClick={() => calculateIncentives(userZip)}
-              disabled={isCalculating || userZip.length !== 5}
+              disabled={isCalculating}
             >
               {isCalculating ? "..." : "Check"}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            {zipCode && zipCode.length === 5 ? "Using your shipping ZIP" : "Enter ZIP to check available incentives"}
+            {zipCode ? "Using your shipping ZIP" : "Enter ZIP to check available incentives"}
           </p>
         </div>
       </div>
@@ -134,11 +134,11 @@ export default function IncentivesCalculator({
       <div className="px-4 py-3 bg-muted/40 border-b flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium">Incentives for {userZip}</span>
-          <button onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={() => setIsEditing(true)} className="text-muted-foreground hover:text-foreground">
             <Pencil className="h-3 w-3" />
           </button>
         </div>
-        <button onClick={handleReset} className="text-xs text-muted-foreground hover:text-foreground">
+        <button type="button" onClick={handleReset} className="text-xs text-muted-foreground hover:text-foreground">
           Reset
         </button>
       </div>
@@ -172,6 +172,7 @@ export default function IncentivesCalculator({
             {/* Upfront Credit Accordion */}
             <div className="rounded border overflow-hidden">
               <button
+                type="button"
                 onClick={() => setShowUpfrontDetails(!showUpfrontDetails)}
                 className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-muted/30 transition-colors"
               >
@@ -199,6 +200,7 @@ export default function IncentivesCalculator({
             {/* Post-Purchase Accordion */}
             <div className="rounded border overflow-hidden">
               <button
+                type="button"
                 onClick={() => setShowPostPurchaseDetails(!showPostPurchaseDetails)}
                 className="w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-muted/30 transition-colors"
               >
