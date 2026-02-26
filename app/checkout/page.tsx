@@ -70,6 +70,7 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     setIsProcessing(true)
 
     // Simulate payment processing
@@ -174,7 +175,7 @@ export default function CheckoutPage() {
           <p className="text-muted-foreground">Complete your order for premium EV charging solutions</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Form */}
             <div className="lg:col-span-2 space-y-8">
@@ -195,7 +196,6 @@ export default function CheckoutPage() {
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -204,7 +204,6 @@ export default function CheckoutPage() {
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -216,7 +215,6 @@ export default function CheckoutPage() {
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleInputChange("email", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -226,7 +224,6 @@ export default function CheckoutPage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => handleInputChange("phone", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -236,7 +233,6 @@ export default function CheckoutPage() {
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleInputChange("address", e.target.value)}
-                      required
                     />
                   </div>
                   <div className="grid md:grid-cols-3 gap-4">
@@ -246,7 +242,6 @@ export default function CheckoutPage() {
                         id="city"
                         value={formData.city}
                         onChange={(e) => handleInputChange("city", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -255,7 +250,6 @@ export default function CheckoutPage() {
                         id="state"
                         value={formData.state}
                         onChange={(e) => handleInputChange("state", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -264,7 +258,6 @@ export default function CheckoutPage() {
                         id="zipCode"
                         value={formData.zipCode}
                         onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
@@ -369,7 +362,6 @@ export default function CheckoutPage() {
                       id="cardName"
                       value={formData.cardName}
                       onChange={(e) => handleInputChange("cardName", e.target.value)}
-                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -379,7 +371,6 @@ export default function CheckoutPage() {
                       placeholder="1234 5678 9012 3456"
                       value={formData.cardNumber}
                       onChange={(e) => handleInputChange("cardNumber", e.target.value)}
-                      required
                     />
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
@@ -390,7 +381,6 @@ export default function CheckoutPage() {
                         placeholder="MM/YY"
                         value={formData.expiryDate}
                         onChange={(e) => handleInputChange("expiryDate", e.target.value)}
-                        required
                       />
                     </div>
                     <div className="space-y-2">
@@ -400,7 +390,6 @@ export default function CheckoutPage() {
                         placeholder="123"
                         value={formData.cvv}
                         onChange={(e) => handleInputChange("cvv", e.target.value)}
-                        required
                       />
                     </div>
                   </div>
