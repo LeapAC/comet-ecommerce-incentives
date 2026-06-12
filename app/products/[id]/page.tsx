@@ -282,16 +282,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-widest">
-                      Discount available
+                      Money back available
                     </p>
                     <p className="text-[22px] font-bold text-foreground leading-tight mt-0.5">
-                      Save up to {usd(c.oneTimeBack)} on this charger
+                      Get up to {usd(c.oneTimeBack)} back on this charger
                       {c.vpp > 0 && (
                         <span className="text-violet-600 font-semibold text-base"> + {usd(c.vpp)}/yr</span>
                       )}
                     </p>
                     <p className="text-sm text-foreground/70 mt-1">
-                      Programs vary by location. Enter your ZIP to unlock the exact savings near you.
+                      Paid back to you after purchase through local rebates &amp; programs. Enter your ZIP to see what you qualify for.
                     </p>
                   </div>
                 </div>
@@ -328,7 +328,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       onClick={() => zipVal.length === 5 && onApply(zipVal)}
                       disabled={zipVal.length !== 5}
                     >
-                      Unlock savings
+                      See money back
                     </Button>
                   </div>
                 </div>
