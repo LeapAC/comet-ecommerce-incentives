@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check, MapPin } from "@/components/ui/lucide-icons"
+import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check, MapPin, Gift } from "@/components/ui/lucide-icons"
 import { useCart } from "@/lib/cart-context"
 import { useZip } from "@/lib/zip-context"
 import { computeIncentives, PROGRAM_META, usd } from "@/lib/incentives"
@@ -53,28 +53,73 @@ function IncentivesPanel({
   const { state } = useCart()
   const [val, setVal] = useState(zip || "")
 
+  // Calculate potential cart savings for the teaser
+  const pot = state.items.reduce(
+    (a, item) => {
+      const c = computeIncentives(item.id, item.price)
+      a.oneTime += c.oneTimeBack * item.quantity
+      a.vpp += c.vpp * item.quantity
+      return a
+    },
+    { oneTime: 0, vpp: 0 }
+  )
+  const anyPot = pot.oneTime > 0 || pot.vpp > 0
+
   if (!applied) {
     return (
-      <div className="flex gap-2 items-center">
-        <div className="relative flex items-center flex-1">
-          <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
-            value={val}
-            inputMode="numeric"
-            placeholder="Enter ZIP code"
-            maxLength={5}
-            onChange={(e) => setVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-            onKeyDown={(e) => { if (e.key === "Enter" && val.length === 5) onApply(val) }}
-            className="w-full h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-          />
-        </div>
-        <button
-          onClick={() => val.length === 5 && onApply(val)}
-          disabled={val.length !== 5}
-          className="h-11 px-5 rounded-lg bg-primary text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-90 transition-all"
+      <div className="rounded-xl overflow-hidden border border-emerald-200">
+        {/* Callout header */}
+        <div
+          className="flex items-center gap-4 px-5 py-4"
+          style={{ background: "linear-gradient(100deg, #ecfdf5, color-mix(in srgb, #7c3aed 8%, white))" }}
         >
-          Check
-        </button>
+          <span className="w-11 h-11 rounded-full bg-primary text-white inline-flex items-center justify-center shrink-0">
+            <Gift className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-semibold text-foreground">
+              {anyPot
+                ? `Don't leave ${usd(pot.oneTime)} on the table`
+                : "Check for incentives before you buy"}
+            </p>
+            <p className="text-sm text-foreground/70 mt-0.5">
+              {anyPot ? (
+                <>
+                  Your cart may qualify for up to{" "}
+                  <strong className="text-emerald-700">{usd(pot.oneTime)}</strong> back
+                  {pot.vpp > 0 && (
+                    <> plus <strong className="text-violet-600">{usd(pot.vpp)}/yr</strong> in VPP earnings</>
+                  )}
+                  . Add your ZIP to apply them to this order.
+                </>
+              ) : (
+                "Enter your ZIP — some areas have rebates and credits we can apply right now."
+              )}
+            </p>
+          </div>
+        </div>
+        {/* ZIP input row */}
+        <div className="flex gap-2 items-center p-4 bg-white">
+          <div className="relative flex items-center flex-1">
+            <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input
+              value={val}
+              inputMode="numeric"
+              placeholder="Enter ZIP code"
+              maxLength={5}
+              onChange={(e) => setVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
+              onKeyDown={(e) => { if (e.key === "Enter" && val.length === 5) onApply(val) }}
+              className="w-full h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+            />
+          </div>
+          <button
+            onClick={() => val.length === 5 && onApply(val)}
+            disabled={val.length !== 5}
+            className="h-11 px-5 rounded-lg bg-primary text-white text-sm font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-90 transition-all"
+          >
+            Apply savings
+          </button>
+        </div>
       </div>
     )
   }

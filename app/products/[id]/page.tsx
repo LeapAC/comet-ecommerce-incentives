@@ -25,6 +25,7 @@ import {
   Plus,
   Minus,
   MapPin,
+  Gift,
 } from "@/components/ui/lucide-icons"
 import Link from "next/link"
 
@@ -271,29 +272,91 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           {!applied ? (
-            <div className="flex flex-col sm:flex-row gap-3 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
-              <div className="relative flex items-center">
-                <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                <input
-                  value={zipVal}
-                  inputMode="numeric"
-                  placeholder="ZIP code"
-                  maxLength={5}
-                  onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal)
-                  }}
-                  className="w-40 h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
+            c.hasAny ? (
+              /* ── Teaser: locked savings + "Unlock savings" CTA ── */
+              <div className="rounded-xl border border-emerald-200 overflow-hidden">
+                {/* Header callout — gradient from emerald-50 to violet-50 */}
+                <div className="flex items-center gap-5 px-6 py-5 bg-gradient-to-r from-emerald-50 to-violet-50">
+                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shrink-0">
+                    <Gift className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-widest">
+                      Discount available
+                    </p>
+                    <p className="text-[22px] font-bold text-foreground leading-tight mt-0.5">
+                      Save up to {usd(c.oneTimeBack)} on this charger
+                      {c.vpp > 0 && (
+                        <span className="text-violet-600 font-semibold text-base"> + {usd(c.vpp)}/yr</span>
+                      )}
+                    </p>
+                    <p className="text-sm text-foreground/70 mt-1">
+                      Programs vary by location. Enter your ZIP to unlock the exact savings near you.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Skeleton rows (locked preview) + unlock overlay */}
+                <div className="relative bg-white">
+                  {/* Ghost skeleton rows — no filter, just low-opacity placeholders */}
+                  <div className="p-4 flex flex-col gap-3 opacity-30 select-none pointer-events-none">
+                    {c.programs.map((pg, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
+                        <div className="w-8 h-8 rounded-full bg-slate-300 shrink-0" />
+                        <div className="flex-1 h-3 rounded-full bg-slate-300" />
+                        <div className="w-16 h-4 rounded bg-slate-400" />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Frosted overlay with ZIP input */}
+                  <div className="absolute inset-0 flex items-center justify-center gap-3 px-6 bg-white/70 backdrop-blur-[2px]">
+                    <div className="relative flex items-center">
+                      <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <input
+                        value={zipVal}
+                        inputMode="numeric"
+                        placeholder="ZIP code"
+                        maxLength={5}
+                        onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                        onKeyDown={(e) => { if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal) }}
+                        className="w-36 h-11 pl-9 pr-3 rounded-lg border border-input bg-white shadow-sm text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                      />
+                    </div>
+                    <Button
+                      size="lg"
+                      onClick={() => zipVal.length === 5 && onApply(zipVal)}
+                      disabled={zipVal.length !== 5}
+                    >
+                      Unlock savings
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <Button
-                size="lg"
-                onClick={() => zipVal.length === 5 && onApply(zipVal)}
-                disabled={zipVal.length !== 5}
-              >
-                See my incentives
-              </Button>
-            </div>
+            ) : (
+              /* ── No programs: simple prompt ── */
+              <div className="flex flex-col sm:flex-row gap-3 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
+                <div className="relative flex items-center">
+                  <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <input
+                    value={zipVal}
+                    inputMode="numeric"
+                    placeholder="ZIP code"
+                    maxLength={5}
+                    onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
+                    onKeyDown={(e) => { if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal) }}
+                    className="w-40 h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <Button
+                  size="lg"
+                  onClick={() => zipVal.length === 5 && onApply(zipVal)}
+                  disabled={zipVal.length !== 5}
+                >
+                  See my incentives
+                </Button>
+              </div>
+            )
           ) : (
             <ProgramList productId={product.id} price={product.price} zip={zip} />
           )}
