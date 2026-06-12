@@ -79,18 +79,18 @@ function IncentivesPanel({
           <div>
             <p className="font-semibold text-foreground">
               {anyPot
-                ? `Don't leave ${usd(pot.oneTime)} on the table`
+                ? `Get up to ${usd(pot.oneTime)} back on this order`
                 : "Check for incentives before you buy"}
             </p>
             <p className="text-sm text-foreground/70 mt-0.5">
               {anyPot ? (
                 <>
                   Your cart may qualify for up to{" "}
-                  <strong className="text-emerald-700">{usd(pot.oneTime)}</strong> back
+                  <strong className="text-emerald-700">{usd(pot.oneTime)}</strong> back after purchase
                   {pot.vpp > 0 && (
-                    <> plus <strong className="text-violet-600">{usd(pot.vpp)}/yr</strong> in VPP earnings</>
+                    <>, plus <strong className="text-violet-600">{usd(pot.vpp)}/yr</strong> in ongoing VPP earnings</>
                   )}
-                  . Add your ZIP to apply them to this order.
+                  . Add your ZIP and we'll handle the paperwork to get you paid.
                 </>
               ) : (
                 "Enter your ZIP — some areas have rebates and credits we can apply right now."
