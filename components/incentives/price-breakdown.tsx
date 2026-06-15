@@ -1,6 +1,8 @@
 "use client"
 
 import { computeIncentives, usd } from "@/lib/incentives"
+import { computeIncentivesFromApi } from "@/lib/incentives-api"
+import { useZip } from "@/lib/zip-context"
 import { Gift, Leaf } from "@/components/ui/lucide-icons"
 
 interface PriceBreakdownProps {
@@ -9,7 +11,16 @@ interface PriceBreakdownProps {
 }
 
 export function PriceBreakdown({ productId, price }: PriceBreakdownProps) {
-  const c = computeIncentives(productId, price)
+  const { incentivesCache } = useZip()
+
+  const apiResult = incentivesCache[productId]
+  // apiResult === undefined  → not yet fetched, use hardcoded
+  // apiResult === null       → API failed / not configured, use hardcoded
+  // apiResult is an object  → use real data
+  const c =
+    apiResult != null
+      ? computeIncentivesFromApi(apiResult, price)
+      : computeIncentives(productId, price)
 
   if (!c.hasAny) {
     return (

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,6 +11,7 @@ import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check, MapPin, Gift } from "
 import { useCart } from "@/lib/cart-context"
 import { useZip } from "@/lib/zip-context"
 import { computeIncentives, PROGRAM_META, usd } from "@/lib/incentives"
+import { computeIncentivesFromApi } from "@/lib/incentives-api"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -51,7 +52,16 @@ function IncentivesPanel({
   zip, applied, onApply,
 }: { zip: string; applied: boolean; onApply: (z: string) => void }) {
   const { state } = useCart()
+  const { incentivesCache } = useZip()
   const [val, setVal] = useState(zip || "")
+
+  // Helper: resolve best available IncentiveComputed for a cart item
+  const resolveIncentives = (itemId: number, price: number) => {
+    const apiResult = incentivesCache[itemId]
+    return apiResult != null
+      ? computeIncentivesFromApi(apiResult, price)
+      : computeIncentives(itemId, price)
+  }
 
   // Calculate potential cart savings for the teaser
   const pot = state.items.reduce(
@@ -138,7 +148,7 @@ function IncentivesPanel({
 
       <div className="p-4 flex flex-col gap-4">
         {state.items.map((item) => {
-          const c = computeIncentives(item.id, item.price)
+          const c = resolveIncentives(item.id, item.price)
           return (
             <div key={item.id} className="flex flex-col gap-2">
               <div className="text-sm font-semibold text-foreground">
@@ -192,7 +202,7 @@ function Row({
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const { state, dispatch } = useCart()
-  const { zip, applied, onApply } = useZip()
+  const { zip, applied, onApply, fetchIncentives, incentivesCache } = useZip()
   const router = useRouter()
   const [ship, setShip] = useState("standard")
   const [placed, setPlaced] = useState(false)
@@ -204,10 +214,20 @@ export default function CheckoutPage() {
 
   const shipCost = ship === "express" ? 29.99 : ship === "overnight" ? 49.99 : 9.99
 
-  // Aggregate incentives from cart
+  // Fetch real incentive data for every item in the cart when ZIP is applied.
+  useEffect(() => {
+    if (!applied) return
+    state.items.forEach((item) => fetchIncentives(item.id))
+  }, [applied, state.items]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Aggregate incentives from cart — prefer API data when available.
   const agg = state.items.reduce(
     (a, item) => {
-      const c = computeIncentives(item.id, item.price)
+      const apiResult = incentivesCache[item.id]
+      const c =
+        apiResult != null
+          ? computeIncentivesFromApi(apiResult, item.price)
+          : computeIncentives(item.id, item.price)
       a.instant += c.instant * item.quantity
       a.rebate += c.rebate * item.quantity
       a.vpp += c.vpp * item.quantity

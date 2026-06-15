@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
 import { notFound } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -13,6 +13,7 @@ import { useCart } from "@/lib/cart-context"
 import { useZip } from "@/lib/zip-context"
 import { PRODUCTS } from "@/lib/products"
 import { computeIncentives, usd } from "@/lib/incentives"
+import { computeIncentivesFromApi } from "@/lib/incentives-api"
 import { useToast } from "@/hooks/use-toast"
 import {
   Zap,
@@ -55,12 +56,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   if (!product) notFound()
 
   const { dispatch } = useCart()
-  const { zip, applied, onApply } = useZip()
+  const { zip, applied, onApply, fetchIncentives, incentivesCache } = useZip()
   const { toast } = useToast()
   const [qty, setQty] = useState(1)
   const [zipVal, setZipVal] = useState(zip || "")
 
-  const c = computeIncentives(product.id, product.price)
+  // Fetch real incentive data from the Leap API when ZIP is applied.
+  useEffect(() => {
+    if (applied) fetchIncentives(product.id)
+  }, [applied, product.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const apiResult = incentivesCache[product.id]
+  const c =
+    apiResult != null
+      ? computeIncentivesFromApi(apiResult, product.price)
+      : computeIncentives(product.id, product.price)
   const warranty =
     product.category === "Accessory" ? "2 Years" : product.category === "Home" ? "3 Years" : "5 Years"
 
