@@ -7,14 +7,10 @@ const BASE_URL = process.env.LEAP_API_URL ?? "https://api.leap.energy"
 // Both are sent as "Authorization: Bearer <value>" to the Leap API gateway
 const API_KEY = process.env.LEAP_API_KEY ?? process.env.LEAP_API_TOKEN ?? ""
 
-// Map storefront product IDs to Leap device catalog UUIDs.
-// Populate via env vars once you have the device UUIDs from staging Supabase.
-const DEVICE_IDS: Record<string, string> = {
-  "1": process.env.LEAP_DEVICE_ID_HOME_PRO ?? "",
-  "2": process.env.LEAP_DEVICE_ID_COMPACT ?? "",
-  "3": process.env.LEAP_DEVICE_ID_BUSINESS ?? "",
-  "4": process.env.LEAP_DEVICE_ID_ULTRA ?? "",
-}
+// All Comet products are EV chargers — same device category, same incentive programs.
+// Get this UUID from the Leap incentives.device table (internal API or DB query).
+// The device must exist in the catalog; the storefront falls back to hardcoded estimates if unset.
+const DEVICE_ID = process.env.LEAP_DEVICE_ID ?? ""
 
 export async function POST(req: NextRequest) {
   const { zip, productId } = await req.json()
@@ -23,9 +19,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "zip and productId are required" }, { status: 400 })
   }
 
-  const deviceId = DEVICE_IDS[String(productId)]
-  if (!deviceId) {
-    // Product has no device ID configured — not an error, just no API data
+  if (!DEVICE_ID) {
     return NextResponse.json({ error: "no_device_id" }, { status: 404 })
   }
 
@@ -46,7 +40,7 @@ export async function POST(req: NextRequest) {
       state,
       zip_code: zip,
     },
-    customer_devices: [{ device_id: deviceId, partner_device_reference: "1" }],
+    customer_devices: [{ device_id: DEVICE_ID, partner_device_reference: "1" }],
     customer_classification: "RESIDENTIAL",
   }
 
