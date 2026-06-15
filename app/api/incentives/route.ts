@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server"
 import { zipToState } from "@/lib/zip-utils"
 import type { EligibilityRequest } from "@/lib/incentives-api"
 
-const BASE_URL = process.env.LEAP_API_URL ?? "https://api.staging.leap.energy"
-const TOKEN = process.env.LEAP_API_TOKEN ?? ""
+const BASE_URL = process.env.LEAP_API_URL ?? "https://api.leap.energy"
+// API key in format "publicId:secret" or a Clerk JWT starting with "ey"
+// Both are sent as "Authorization: Bearer <value>" to the Leap API gateway
+const API_KEY = process.env.LEAP_API_KEY ?? process.env.LEAP_API_TOKEN ?? ""
 
 // Map storefront product IDs to Leap device catalog UUIDs.
 // Populate via env vars once you have the device UUIDs from staging Supabase.
@@ -27,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no_device_id" }, { status: 404 })
   }
 
-  if (!TOKEN) {
+  if (!API_KEY) {
     // Credentials not configured yet — caller will fall back to hardcoded data
     return NextResponse.json({ error: "not_configured" }, { status: 503 })
   }
@@ -53,7 +55,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify(body),
       // Don't let a slow upstream block the storefront for more than 8s
