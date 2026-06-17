@@ -97,14 +97,13 @@ export default function HomePage() {
               <div className="space-y-4">
                 <Badge variant="secondary" className="w-fit">
                   <Leaf className="h-3 w-3 mr-1" />
-                  Sustainable Charging
+                  Smart Home Energy
                 </Badge>
                 <h1 className="text-4xl lg:text-6xl font-bold text-balance leading-tight">
-                  Power Your Future with <span className="text-primary">Smart EV Charging</span>
+                  Smart Devices, <span className="text-primary">Real Savings</span>
                 </h1>
                 <p className="text-xl text-muted-foreground text-pretty leading-relaxed">
-                  Experience the next generation of electric vehicle charging with Comet's innovative, eco-friendly
-                  solutions designed for modern homes and businesses.
+                  Shop top-brand EV chargers and smart thermostats — with real-time utility rebate and incentive estimates for your address, powered by Leap.
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -142,7 +141,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="font-semibold">Fast Charging</p>
-                    <p className="text-sm text-muted-foreground">Up to 50kW DC</p>
+                    <p className="text-sm text-muted-foreground">Up to 19.2 kW</p>
                   </div>
                 </div>
               </div>
@@ -157,7 +156,7 @@ export default function HomePage() {
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-balance">Why Choose Comet?</h2>
             <p className="text-xl text-muted-foreground text-balance max-w-2xl mx-auto">
-              Advanced technology meets sustainable design for the ultimate charging experience
+              Top-brand smart home devices with real utility rebates built right into the checkout experience
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -166,11 +165,11 @@ export default function HomePage() {
                 <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle>Lightning Fast</CardTitle>
+                <CardTitle>Top Brands</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Charge your EV up to 10x faster than standard outlets with our advanced charging technology
+                  Tesla, Wallbox, ecobee, Google Nest, Honeywell — curated devices from the brands you trust
                 </CardDescription>
               </CardContent>
             </Card>
@@ -179,11 +178,11 @@ export default function HomePage() {
                 <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Wifi className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle>Smart Connected</CardTitle>
+                <CardTitle>Real Incentives</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-base">
-                  Monitor and control your charging remotely with our intuitive mobile app and WiFi connectivity
+                  See real utility rebates and tax credits for your ZIP code before you buy — no surprises at checkout
                 </CardDescription>
               </CardContent>
             </Card>
@@ -208,9 +207,9 @@ export default function HomePage() {
       <section className="py-20">
         <div className="container">
           <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-balance">Our Product Range</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-balance">Featured Products</h2>
             <p className="text-xl text-muted-foreground text-balance max-w-2xl mx-auto">
-              From compact home chargers to commercial solutions, find the perfect fit for your needs
+              EV chargers and smart thermostats from top brands — with real incentives built in
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -274,20 +273,17 @@ export default function HomePage() {
                 <span className="text-xl font-bold">Comet</span>
               </Link>
               <p className="text-muted-foreground">
-                Leading the future of electric vehicle charging with innovative, sustainable solutions.
+                Smart home energy devices — EV chargers, thermostats, and real-time incentive estimates.
               </p>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold">Products</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <Link href="/products" className="block hover:text-foreground transition-colors">
-                  Home Chargers
+                  EV Chargers
                 </Link>
                 <Link href="/products" className="block hover:text-foreground transition-colors">
-                  Commercial
-                </Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">
-                  Accessories
+                  Smart Thermostats
                 </Link>
               </div>
             </div>
@@ -321,7 +317,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Comet. All rights reserved. Powering the future of transportation.</p>
+            <p>&copy; 2026 Comet. All rights reserved.</p>
           </div>
         </div>
       </footer>

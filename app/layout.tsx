@@ -14,9 +14,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Comet - Premium EV Chargers",
+  title: "Comet — Smart Home Essentials",
   description:
-    "Modern electric vehicle charging solutions for your home and business. Shop our range of smart EV chargers and accessories.",
+    "Shop EV chargers and smart thermostats from top brands. Real-time incentive estimates for your ZIP code, powered by Leap.",
   generator: "v0.app",
 }
 
