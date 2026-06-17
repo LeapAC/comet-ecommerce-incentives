@@ -3,12 +3,26 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from "react"
 import type { EligibilityResult } from "./incentives-api"
 
+export interface Address {
+  line1: string
+  city: string
+  state: string
+  zip: string
+  display: string
+}
+
 interface ZipContextType {
+  /** Full address when set via Places autocomplete; null when set from a bare ZIP. */
+  address: Address | null
+  /** Derived from address.zip when available, else the raw ZIP string. */
   zip: string
   applied: boolean
+  /** Set incentive location from a bare ZIP (checkout form, inline inputs). */
   onApply: (z: string) => void
-  // null = API returned an error/not configured (use hardcoded fallback)
-  // EligibilityResult = real data from the Leap API
+  /** Set incentive location from a Google Places result (LocationBanner). */
+  onApplyAddress: (a: Address) => void
+  /** Clear the applied location and reset the cache. */
+  onClear: () => void
   incentivesCache: Record<number, EligibilityResult | null>
   isFetching: Record<number, boolean>
   fetchIncentives: (productId: number) => Promise<void>
@@ -17,33 +31,48 @@ interface ZipContextType {
 const ZipContext = createContext<ZipContextType | null>(null)
 
 export function ZipProvider({ children }: { children: React.ReactNode }) {
+  const [address, setAddress] = useState<Address | null>(null)
   const [zip, setZip] = useState("")
   const [applied, setApplied] = useState(false)
   const [incentivesCache, setIncentivesCache] = useState<Record<number, EligibilityResult | null>>({})
   const [isFetching, setIsFetching] = useState<Record<number, boolean>>({})
-  // Track the ZIP that was used to populate the current cache so we can
-  // invalidate it when the user changes their ZIP.
   const cachedZipRef = useRef("")
 
-  const onApply = (z: string) => {
-    const v = z.replace(/\D/g, "").slice(0, 5)
-    setZip(v)
-    const newApplied = v.length === 5
-    setApplied(newApplied)
-    // Clear cache whenever ZIP changes
-    if (v !== cachedZipRef.current) {
-      cachedZipRef.current = v
+  const clearCache = (newZip: string) => {
+    if (newZip !== cachedZipRef.current) {
+      cachedZipRef.current = newZip
       setIncentivesCache({})
       setIsFetching({})
     }
   }
 
+  const onApply = (z: string) => {
+    const v = z.replace(/\D/g, "").slice(0, 5)
+    setZip(v)
+    setAddress(null)
+    const newApplied = v.length === 5
+    setApplied(newApplied)
+    clearCache(v)
+  }
+
+  const onApplyAddress = (a: Address) => {
+    setAddress(a)
+    setZip(a.zip)
+    setApplied(true)
+    clearCache(a.zip)
+  }
+
+  const onClear = () => {
+    setAddress(null)
+    setZip("")
+    setApplied(false)
+    clearCache("")
+  }
+
   const fetchIncentives = useCallback(
     async (productId: number) => {
       if (!zip || zip.length !== 5) return
-      // Already cached (even if null — means we already tried and failed)
       if (incentivesCache[productId] !== undefined) return
-      // Already in flight
       if (isFetching[productId]) return
 
       setIsFetching((prev) => ({ ...prev, [productId]: true }))
@@ -51,13 +80,12 @@ export function ZipProvider({ children }: { children: React.ReactNode }) {
         const res = await fetch("/api/incentives", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ zip, productId }),
+          body: JSON.stringify({ zip, address, productId }),
         })
         if (res.ok) {
           const data: EligibilityResult = await res.json()
           setIncentivesCache((prev) => ({ ...prev, [productId]: data }))
         } else {
-          // Not configured, no device ID, or API error — fall back to hardcoded
           setIncentivesCache((prev) => ({ ...prev, [productId]: null }))
         }
       } catch {
@@ -66,11 +94,13 @@ export function ZipProvider({ children }: { children: React.ReactNode }) {
         setIsFetching((prev) => ({ ...prev, [productId]: false }))
       }
     },
-    [zip, incentivesCache, isFetching]
+    [zip, address, incentivesCache, isFetching]
   )
 
   return (
-    <ZipContext.Provider value={{ zip, applied, onApply, incentivesCache, isFetching, fetchIncentives }}>
+    <ZipContext.Provider
+      value={{ address, zip, applied, onApply, onApplyAddress, onClear, incentivesCache, isFetching, fetchIncentives }}
+    >
       {children}
     </ZipContext.Provider>
   )

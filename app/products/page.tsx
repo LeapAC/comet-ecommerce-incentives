@@ -12,11 +12,11 @@ import { useCart } from "@/lib/cart-context"
 import { useZip } from "@/lib/zip-context"
 import { PRODUCTS } from "@/lib/products"
 import { computeIncentives, usd } from "@/lib/incentives"
-import { Zap, Search, Filter, ShoppingCart, Star } from "@/components/ui/lucide-icons"
+import { Zap, Wifi, Search, Filter, ShoppingCart, Star } from "@/components/ui/lucide-icons"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
-const CATEGORIES = ["All", "Home", "Commercial", "Premium", "Accessory"]
+const CATEGORIES = ["All", "EV Charger", "Smart Thermostat"]
 
 function CategoryPill({
   active,
@@ -110,8 +110,12 @@ function ProductCard({
             {product.name}
           </Link>
           <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
-            <Zap className="h-3.5 w-3.5 shrink-0" />
-            {product.power}
+            {product.power ? (
+              <Zap className="h-3.5 w-3.5 shrink-0" />
+            ) : (
+              <Wifi className="h-3.5 w-3.5 shrink-0" />
+            )}
+            {product.power ?? product.compatibility}
           </div>
         </div>
 
@@ -146,7 +150,7 @@ function ProductCard({
 }
 
 export default function ProductsPage() {
-  const { zip, applied, onApply } = useZip()
+  const { address, zip, applied, onApplyAddress, onClear } = useZip()
   const [query, setQuery] = useState("")
   const [category, setCategory] = useState("All")
   const { state } = useCart()
@@ -187,11 +191,11 @@ export default function ProductsPage() {
         <div className="container max-w-[1280px]">
           <div className="flex items-baseline justify-between flex-wrap gap-2 mb-4">
             <h1 className="text-[28px] font-bold text-foreground tracking-tight">
-              EV Charging Solutions
+              Smart Home Devices
             </h1>
             <span className="text-sm text-muted-foreground">{filtered.length} products</span>
           </div>
-          <LocationBanner zip={zip} applied={applied} onApply={onApply} />
+          <LocationBanner address={address} applied={applied} onApplyAddress={onApplyAddress} onClear={onClear} />
         </div>
       </section>
 
@@ -218,7 +222,7 @@ export default function ProductsPage() {
                 active={category === cat}
                 onClick={() => setCategory(cat)}
               >
-                {cat}
+                {cat === "EV Charger" ? "EV Chargers" : cat === "Smart Thermostat" ? "Smart Thermostats" : cat}
               </CategoryPill>
             ))}
           </div>
@@ -261,15 +265,14 @@ export default function ProductsPage() {
                 <span className="text-xl font-bold">Comet</span>
               </Link>
               <p className="text-sm text-muted-foreground">
-                Leading the future of electric vehicle charging with innovative, sustainable solutions.
+                Your one-stop shop for smart home energy devices — EV chargers, thermostats, and real-time incentive estimates.
               </p>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-sm">Products</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/products" className="block hover:text-foreground transition-colors">Home Chargers</Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">Commercial</Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">Accessories</Link>
+                <Link href="/products" className="block hover:text-foreground transition-colors">EV Chargers</Link>
+                <Link href="/products" className="block hover:text-foreground transition-colors">Smart Thermostats</Link>
               </div>
             </div>
             <div className="space-y-4">
@@ -290,7 +293,7 @@ export default function ProductsPage() {
             </div>
           </div>
           <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            © 2026 Comet. All rights reserved. Powering the future of transportation.
+            © 2026 Comet. All rights reserved.
           </div>
         </div>
       </footer>

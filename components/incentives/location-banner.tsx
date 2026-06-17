@@ -1,30 +1,29 @@
 "use client"
 
-import { useState } from "react"
-import { MapPin, Check } from "@/components/ui/lucide-icons"
+import { Check, MapPin } from "@/components/ui/lucide-icons"
+import { AddressSearch } from "./address-search"
+import type { Address } from "@/lib/zip-context"
 
 interface LocationBannerProps {
-  zip: string
+  address: Address | null
   applied: boolean
-  onApply: (z: string) => void
+  onApplyAddress: (a: Address) => void
+  onClear: () => void
 }
 
-export function LocationBanner({ zip, applied, onApply }: LocationBannerProps) {
-  const [val, setVal] = useState(zip || "")
-  const ok = val.length === 5
-
-  if (applied) {
+export function LocationBanner({ address, applied, onApplyAddress, onClear }: LocationBannerProps) {
+  if (applied && address) {
     return (
       <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
         <Check className="h-4 w-4 text-primary shrink-0" />
-        <span className="text-sm font-medium text-foreground flex-1">
-          Incentives applied for {zip}
+        <span className="text-sm font-medium text-foreground flex-1 truncate">
+          Incentives applied for {address.city}, {address.state}
         </span>
         <button
-          onClick={() => onApply("")}
-          className="ml-auto text-sm font-medium text-primary hover:underline"
+          onClick={onClear}
+          className="ml-auto text-sm font-medium text-primary hover:underline shrink-0"
         >
-          Change ZIP
+          Change address
         </button>
       </div>
     )
@@ -38,37 +37,21 @@ export function LocationBanner({ zip, applied, onApply }: LocationBannerProps) {
           <MapPin className="h-5 w-5" />
         </span>
         <div>
-          <p className="font-semibold text-foreground">See EV charging incentives near you</p>
+          <p className="font-semibold text-foreground">See smart home incentives near you</p>
           <p className="text-sm text-muted-foreground mt-0.5 text-pretty">
             Programs vary by product &amp; location — rebates, instant credits, and Virtual Power
-            Plant earnings. Enter your ZIP to see what each charger qualifies for.
+            Plant earnings. Enter your address to see what each device qualifies for.
           </p>
         </div>
       </div>
 
-      {/* ZIP input */}
-      <div className="flex gap-2 shrink-0">
-        <div className="relative flex items-center">
-          <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
-            value={val}
-            inputMode="numeric"
-            placeholder="ZIP code"
-            maxLength={5}
-            onChange={(e) => setVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && ok) onApply(val)
-            }}
-            className="w-36 h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-          />
-        </div>
-        <button
-          onClick={() => ok && onApply(val)}
-          disabled={!ok}
-          className="h-11 px-5 rounded-lg bg-primary text-white text-sm font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-90 transition-all"
-        >
-          See incentives
-        </button>
+      {/* Address search */}
+      <div className="flex gap-2 shrink-0 sm:w-72">
+        <AddressSearch
+          onSelect={onApplyAddress}
+          placeholder="Enter your address"
+          className="flex-1"
+        />
       </div>
     </div>
   )

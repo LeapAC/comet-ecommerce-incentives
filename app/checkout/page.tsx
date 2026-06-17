@@ -49,8 +49,8 @@ function ShipOption({
 
 // ─── Per-item incentives panel ────────────────────────────────────────────────
 function IncentivesPanel({
-  zip, applied, onApply,
-}: { zip: string; applied: boolean; onApply: (z: string) => void }) {
+  zip, applied, onApply, onClear,
+}: { zip: string; applied: boolean; onApply: (z: string) => void; onClear: () => void }) {
   const { state } = useCart()
   const { incentivesCache } = useZip()
   const [val, setVal] = useState(zip || "")
@@ -139,7 +139,7 @@ function IncentivesPanel({
       <div className="px-4 py-2.5 bg-muted/40 border-b flex items-center justify-between">
         <span className="text-sm font-medium text-foreground">Incentives for {zip}</span>
         <button
-          onClick={() => onApply("")}
+          onClick={onClear}
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
           Change
@@ -202,7 +202,7 @@ function Row({
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const { state, dispatch } = useCart()
-  const { zip, applied, onApply, fetchIncentives, incentivesCache } = useZip()
+  const { zip, applied, onApply, onClear, fetchIncentives, incentivesCache } = useZip()
   const router = useRouter()
   const [ship, setShip] = useState("standard")
   const [placed, setPlaced] = useState(false)
@@ -402,7 +402,7 @@ export default function CheckoutPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <IncentivesPanel zip={zip} applied={applied} onApply={onApply} />
+                <IncentivesPanel zip={zip} applied={applied} onApply={onApply} onClear={onClear} />
               </CardContent>
             </Card>
 

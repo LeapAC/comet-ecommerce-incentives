@@ -8,7 +8,7 @@ import { CartDrawer } from "@/components/cart-drawer"
 import { MobileNav } from "@/components/mobile-nav"
 import { PriceBreakdown } from "@/components/incentives/price-breakdown"
 import { ProgramList } from "@/components/incentives/program-list"
-import { LocationBanner } from "@/components/incentives/location-banner"
+import { AddressSearch } from "@/components/incentives/address-search"
 import { useCart } from "@/lib/cart-context"
 import { useZip } from "@/lib/zip-context"
 import { PRODUCTS } from "@/lib/products"
@@ -17,6 +17,7 @@ import { computeIncentivesFromApi } from "@/lib/incentives-api"
 import { useToast } from "@/hooks/use-toast"
 import {
   Zap,
+  Wifi,
   Shield,
   Check,
   Star,
@@ -25,7 +26,6 @@ import {
   Truck,
   Plus,
   Minus,
-  MapPin,
   Gift,
 } from "@/components/ui/lucide-icons"
 import Link from "next/link"
@@ -56,10 +56,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   if (!product) notFound()
 
   const { dispatch } = useCart()
-  const { zip, applied, onApply, fetchIncentives, incentivesCache } = useZip()
+  const { address, zip, applied, onApplyAddress, onClear, fetchIncentives, incentivesCache } = useZip()
   const { toast } = useToast()
   const [qty, setQty] = useState(1)
-  const [zipVal, setZipVal] = useState(zip || "")
 
   // Fetch real incentive data from the Leap API when ZIP is applied.
   useEffect(() => {
@@ -71,8 +70,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     apiResult != null
       ? computeIncentivesFromApi(apiResult, product.price)
       : computeIncentives(product.id, product.price)
-  const warranty =
-    product.category === "Accessory" ? "2 Years" : product.category === "Home" ? "3 Years" : "5 Years"
+  const warranty = product.category === "EV Charger" ? "3 Years" : "2 Years"
 
   const addToCart = () => {
     for (let i = 0; i < qty; i++) {
@@ -138,16 +136,27 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               className="w-full h-[380px] object-cover rounded-2xl shadow-lg"
             />
             <div className="flex gap-3">
-              <SpecChip
-                icon={<Zap className="h-3.5 w-3.5" />}
-                label="Power"
-                value={product.power}
-              />
-              <SpecChip
-                icon={<Shield className="h-3.5 w-3.5" />}
-                label="Connector"
-                value={product.connector}
-              />
+              {product.power && (
+                <SpecChip
+                  icon={<Zap className="h-3.5 w-3.5" />}
+                  label="Power"
+                  value={product.power}
+                />
+              )}
+              {product.connector && (
+                <SpecChip
+                  icon={<Shield className="h-3.5 w-3.5" />}
+                  label="Connector"
+                  value={product.connector}
+                />
+              )}
+              {product.compatibility && (
+                <SpecChip
+                  icon={<Wifi className="h-3.5 w-3.5" />}
+                  label="Compatibility"
+                  value={product.compatibility}
+                />
+              )}
               <SpecChip
                 icon={<Check className="h-3.5 w-3.5" />}
                 label="Warranty"
@@ -249,7 +258,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <p className="text-sm text-muted-foreground mt-1">
                 {applied ? (
                   <>
-                    Available for this charger in {zip}
+                    Available for this charger in {address?.city ?? zip}
                     {c.hasAny ? (
                       <>
                         {" "}— up to{" "}
@@ -273,10 +282,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
             {applied && (
               <button
-                onClick={() => onApply("")}
+                onClick={onClear}
                 className="text-sm font-medium text-primary hover:underline"
               >
-                Change ZIP ({zip})
+                Change address
               </button>
             )}
           </div>
@@ -319,52 +328,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     ))}
                   </div>
 
-                  {/* Frosted overlay with ZIP input */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-3 px-6 bg-white/70 backdrop-blur-[2px]">
-                    <div className="relative flex items-center">
-                      <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <input
-                        value={zipVal}
-                        inputMode="numeric"
-                        placeholder="ZIP code"
-                        maxLength={5}
-                        onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                        onKeyDown={(e) => { if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal) }}
-                        className="w-36 h-11 pl-9 pr-3 rounded-lg border border-input bg-white shadow-sm text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
-                    </div>
-                    <Button
-                      size="lg"
-                      onClick={() => zipVal.length === 5 && onApply(zipVal)}
-                      disabled={zipVal.length !== 5}
-                    >
-                      See money back
-                    </Button>
+                  {/* Frosted overlay with address search */}
+                  <div className="absolute inset-0 flex items-center justify-center px-6 bg-white/70 backdrop-blur-[2px]">
+                    <AddressSearch
+                      onSelect={onApplyAddress}
+                      placeholder="Enter your address to unlock savings"
+                      className="w-full max-w-sm"
+                    />
                   </div>
                 </div>
               </div>
             ) : (
               /* ── No programs: simple prompt ── */
-              <div className="flex flex-col sm:flex-row gap-3 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
-                <div className="relative flex items-center">
-                  <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <input
-                    value={zipVal}
-                    inputMode="numeric"
-                    placeholder="ZIP code"
-                    maxLength={5}
-                    onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                    onKeyDown={(e) => { if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal) }}
-                    className="w-40 h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-                <Button
-                  size="lg"
-                  onClick={() => zipVal.length === 5 && onApply(zipVal)}
-                  disabled={zipVal.length !== 5}
-                >
-                  See my incentives
-                </Button>
+              <div className="flex gap-3 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
+                <AddressSearch
+                  onSelect={onApplyAddress}
+                  placeholder="Enter your address"
+                  className="flex-1"
+                />
               </div>
             )
           ) : (
@@ -383,15 +364,14 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <span className="text-xl font-bold">Comet</span>
               </Link>
               <p className="text-sm text-muted-foreground">
-                Leading the future of electric vehicle charging with innovative, sustainable solutions.
+                Smart home energy devices — EV chargers, thermostats, and real-time incentive estimates.
               </p>
             </div>
             <div className="space-y-4">
               <h4 className="font-semibold text-sm">Products</h4>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/products" className="block hover:text-foreground transition-colors">Home Chargers</Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">Commercial</Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">Accessories</Link>
+                <Link href="/products" className="block hover:text-foreground transition-colors">EV Chargers</Link>
+                <Link href="/products" className="block hover:text-foreground transition-colors">Smart Thermostats</Link>
               </div>
             </div>
             <div className="space-y-4">
@@ -412,7 +392,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
           <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            © 2026 Comet. All rights reserved. Powering the future of transportation.
+            © 2026 Comet. All rights reserved.
           </div>
         </div>
       </footer>
