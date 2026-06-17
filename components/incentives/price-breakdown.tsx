@@ -51,7 +51,7 @@ export function PriceBreakdown({ productId, price }: PriceBreakdownProps) {
         )}
       </div>
 
-      {/* Rebate row */}
+      {/* Rebate + VPP net cost rows */}
       {c.rebate > 0 && (
         <div className="px-3 py-2.5 border-t bg-emerald-50">
           <div className="flex items-center justify-between">
@@ -65,11 +65,26 @@ export function PriceBreakdown({ productId, price }: PriceBreakdownProps) {
             <span className="text-[13px] font-bold text-foreground">Net cost</span>
             <span className="text-[18px] font-bold text-emerald-700">≈ {usd(c.net)}</span>
           </div>
+          {c.vpp > 0 && (
+            <>
+              <div className="flex items-center justify-between mt-2">
+                <span className="flex items-center gap-1.5 text-[13px] text-foreground/80">
+                  <Leaf className="h-3.5 w-3.5 text-violet-600 shrink-0" />
+                  VPP earnings (yr 1)
+                </span>
+                <span className="text-[13px] font-semibold text-violet-600">−{usd(c.vpp)}</span>
+              </div>
+              <div className="flex items-baseline justify-between mt-1.5">
+                <span className="text-[13px] font-bold text-foreground">Net after yr 1</span>
+                <span className="text-[18px] font-bold text-violet-600">≈ {usd(Math.max(0, c.net - c.vpp))}</span>
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {/* VPP row */}
-      {c.vpp > 0 && (
+      {/* VPP-only row (no rebate) */}
+      {c.rebate === 0 && c.vpp > 0 && (
         <div className="px-3 py-1.5 border-t bg-violet-50 flex items-center gap-1.5">
           <Leaf className="h-3 w-3 text-violet-600 shrink-0" />
           <span className="text-[12px] font-medium text-violet-600">

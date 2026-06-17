@@ -57,25 +57,20 @@ export const PROGRAM_META: Record<ProgramType, ProgramMeta> = {
 export const PROGRAMS: Record<number, Program[]> = {
   // ── EV Chargers ───────────────────────────────────────────────────────────
   1: [ // Tesla Wall Connector ($450)
-    { type: "instant", name: "Federal 30C EV Charger Credit", amount: 135, sub: "30% of hardware, advanced by Leap" },
     { type: "rebate", name: "Utility EV Charger Rebate", amount: 200, sub: "Estimated, after install" },
   ],
   2: [ // Wallbox Pulsar Plus ($749)
-    { type: "instant", name: "Federal 30C EV Charger Credit", amount: 225, sub: "30% of hardware, advanced by Leap" },
     { type: "rebate", name: "Utility EV Charger Rebate", amount: 250, sub: "Estimated, after install" },
     { type: "vpp", name: "Demand Response Enrollment", amount: 200, sub: "Avg. annual earnings" },
   ],
   3: [ // GM Energy PowerShift ($3,999)
-    { type: "instant", name: "Federal 30C EV Charger Credit", amount: 1000, sub: "30% up to $1,000 cap, advanced by Leap" },
     { type: "rebate", name: "Bidirectional Charger Rebate", amount: 500, sub: "V2H premium, after install" },
     { type: "vpp", name: "Vehicle-to-Grid Earnings", amount: 450, sub: "Avg. annual earnings" },
   ],
   4: [ // Emporia Pro Level 2 ($599)
-    { type: "instant", name: "Federal 30C EV Charger Credit", amount: 180, sub: "30% of hardware, advanced by Leap" },
     { type: "rebate", name: "Utility EV Charger Rebate", amount: 200, sub: "Estimated, after install" },
   ],
   5: [ // EVIQO EVIPOWER Gen2 ($399)
-    { type: "instant", name: "Federal 30C EV Charger Credit", amount: 120, sub: "30% of hardware, advanced by Leap" },
     { type: "rebate", name: "Utility EV Charger Rebate", amount: 150, sub: "Estimated, after install" },
   ],
   // ── Smart Thermostats ─────────────────────────────────────────────────────
@@ -92,12 +87,10 @@ export const PROGRAMS: Record<number, Program[]> = {
     { type: "vpp", name: "Demand Response Enrollment", amount: 120, sub: "Avg. annual earnings" },
   ],
   9: [ // ecobee3 ($199)
-    { type: "instant", name: "Instant Thermostat Incentive", amount: 50, sub: "Advanced by Leap" },
     { type: "rebate", name: "Smart Thermostat Rebate", amount: 75, sub: "Estimated, after install" },
     { type: "vpp", name: "Demand Response Enrollment", amount: 150, sub: "Avg. annual earnings" },
   ],
   10: [ // ecobee4 ($249)
-    { type: "instant", name: "Instant Thermostat Incentive", amount: 50, sub: "Advanced by Leap" },
     { type: "rebate", name: "Smart Thermostat Rebate", amount: 75, sub: "Estimated, after install" },
     { type: "vpp", name: "Demand Response Enrollment", amount: 150, sub: "Avg. annual earnings" },
   ],

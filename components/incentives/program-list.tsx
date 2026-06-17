@@ -91,11 +91,6 @@ export function ProgramList({ productId, price, zip }: ProgramListProps) {
           </div>
         )
       })}
-      {apiResult != null && (
-        <p className="text-[11px] text-muted-foreground text-center pt-1">
-          Powered by <strong className="text-foreground">Leap</strong> · real-time eligibility for {zip}
-        </p>
-      )}
     </div>
   )
 }

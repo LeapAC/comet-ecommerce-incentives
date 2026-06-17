@@ -180,9 +180,6 @@ function IncentivesPanel({
         })}
       </div>
 
-      <div className="px-4 py-2 bg-muted/20 border-t text-center text-[10px] text-muted-foreground">
-        Powered by <strong className="text-foreground">Leap</strong> · Federal · State · Utility · VPP
-      </div>
     </div>
   )
 }
