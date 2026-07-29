@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useEffect, useState } from "react"
+import { use, useEffect, useMemo, useState } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -49,15 +49,26 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const { toast } = useToast()
   const [qty, setQty] = useState(1)
 
-  const cacheKey = `pdp-${product.id}`
+  // qty-aware: one device entry per unit (mirrors cartToDevices) so the PDP
+  // incentive badge shows the same qty-total that cart/checkout compute. `qty`
+  // is part of the cache key so each quantity caches independently.
+  const devices = useMemo(
+    () =>
+      Array.from({ length: qty }, (_, n) => ({
+        deviceId: product.deviceId,
+        ref: `p${product.id}-${n + 1}`,
+      })),
+    [qty, product.deviceId, product.id],
+  )
+  const cacheKey = `pdp-${product.id}-q${qty}`
   const state = results[cacheKey]
   const view = state?.status === "done" ? state.view : undefined
 
   useEffect(() => {
     if (applied && !state) {
-      lookup(cacheKey, [{ deviceId: product.deviceId }])
+      lookup(cacheKey, devices)
     }
-  }, [applied, address, cacheKey, product.deviceId, state, lookup])
+  }, [applied, address, cacheKey, devices, state, lookup])
 
   const warranty =
     product.category === "Accessory" ? "2 Years" : product.category === "Home" ? "3 Years" : "5 Years"
@@ -222,7 +233,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                 <span>Couldn&apos;t check incentives: {state.error}</span>
                 <button
-                  onClick={() => lookup(cacheKey, [{ deviceId: product.deviceId }])}
+                  onClick={() => lookup(cacheKey, devices)}
                   className="shrink-0 font-semibold underline"
                 >
                   Retry

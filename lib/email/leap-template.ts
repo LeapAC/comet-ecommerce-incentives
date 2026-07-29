@@ -12,9 +12,28 @@ import { LEAP_CONFIRMATION_TEMPLATE } from "./leap-confirmation-template"
 type TemplateVars = Record<string, string | number | null | undefined>
 
 /**
+ * HTML-escapes a substituted value so user/API-derived data can never inject
+ * live markup into the rendered email. This preview is shown in an iframe, so an
+ * unescaped `<img onerror>` / `<script>` in a name field would otherwise execute
+ * (XSS). Every substituted value is escaped — the templates contain no
+ * intentionally-raw HTML fragments as vars (`applications`/`companyLogoUrl` are
+ * always empty strings in this reference preview).
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+/**
  * Minimal Handlebars subset covering exactly what these templates use:
  * `{{{#if key}}}…{{{else}}}…{{{/if}}}` blocks (nesting supported by resolving
- * innermost-first) and `{{{var}}}` substitution.
+ * innermost-first) and `{{{var}}}` substitution. Despite the triple-brace
+ * (normally "raw" in Handlebars), every substituted value is HTML-escaped here —
+ * the template markup itself is trusted, but the interpolated values are not.
  */
 export function renderLeapTemplate(template: string, vars: TemplateVars): string {
   const truthy = (k: string) => {
@@ -36,7 +55,7 @@ export function renderLeapTemplate(template: string, vars: TemplateVars): string
 
   return out.replace(/\{\{\{\s*(\w+)\s*\}\}\}/g, (_m, key: string) => {
     const v = vars[key]
-    return v === undefined || v === null ? "" : String(v)
+    return v === undefined || v === null ? "" : escapeHtml(String(v))
   })
 }
 

@@ -244,6 +244,10 @@ export default function CheckoutPage() {
               <iframe
                 title="Confirmation email preview"
                 srcDoc={order.emailHtml}
+                // Static, JS-free email preview: fully sandboxed (no allow-scripts,
+                // no allow-same-origin) so injected markup can never run with this
+                // origin's privileges. Inline styles + remote <img> still render.
+                sandbox=""
                 tabIndex={-1}
                 loading="lazy"
                 className="h-[560px] w-full bg-white"
@@ -306,11 +310,11 @@ export default function CheckoutPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
                     <Label>First name</Label>
-                    <Input placeholder="Jordan" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    <Input placeholder="Jordan" value={firstName} maxLength={100} onChange={(e) => setFirstName(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label>Last name</Label>
-                    <Input placeholder="Rivera" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    <Input placeholder="Rivera" value={lastName} maxLength={100} onChange={(e) => setLastName(e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-1.5">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { Gift, Leaf } from "@/components/ui/lucide-icons"
 import { useCart } from "@/lib/cart-context"
 import { useIncentives } from "@/lib/incentives/context"
@@ -23,11 +23,20 @@ export function CartIncentiveSummary({ active }: { active: boolean }) {
   const st = results[key]
   const view = st?.status === "done" ? st.view : undefined
 
+  // Re-run the lookup whenever the address OR the cart contents change — guarding
+  // on `!st` alone left the summary stale when the cart was edited (qty bumped,
+  // item added/removed) while the drawer stayed open. Track a device+address
+  // signature and re-run when it changes, matching app/checkout/page.tsx.
+  const deviceSig = devices.map((d) => `${d.deviceId}:${d.ref}`).join("|")
+  const lastRun = useRef("")
   useEffect(() => {
-    if (active && applied && devices.length > 0 && !st) {
-      lookup(key, devices, { referenceId: "comet-cart-preview" })
-    }
-  }, [active, applied, address, devices, st, lookup])
+    if (!active || !applied || devices.length === 0) return
+    const addrSig = address ? `${address.line1}|${address.city}|${address.state}|${address.zip}` : ""
+    const sig = `${addrSig}::${deviceSig}`
+    if (lastRun.current === sig) return
+    lastRun.current = sig
+    lookup(key, devices, { referenceId: "comet-cart-preview" })
+  }, [active, applied, address, deviceSig, devices, lookup])
 
   if (state.items.length === 0) return null
 
