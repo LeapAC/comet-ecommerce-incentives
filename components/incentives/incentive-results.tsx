@@ -1,34 +1,50 @@
 "use client"
 
-import { Gift, Leaf, Info, ArrowRight } from "@/components/ui/lucide-icons"
+import { Gift, Leaf, Zap, Info, Check } from "@/components/ui/lucide-icons"
 import { usd, type IncentiveView, type IncentiveWhen } from "@/lib/incentives/model"
 
 const WHEN_META: Record<
   IncentiveWhen,
-  { label: string; color: string; bg: string; Icon: typeof Gift }
+  { label: string; color: string; bg: string; ring: string; Icon: typeof Gift; sign: string }
 > = {
-  install: { label: "After install", color: "text-emerald-700", bg: "bg-emerald-50", Icon: Gift },
-  upfront: { label: "At checkout", color: "text-emerald-700", bg: "bg-emerald-50", Icon: Gift },
-  ongoing: { label: "Every year", color: "text-violet-600", bg: "bg-violet-50", Icon: Leaf },
+  install: {
+    label: "Rebate after install",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
+    ring: "ring-emerald-100",
+    Icon: Gift,
+    sign: "+",
+  },
+  upfront: {
+    label: "Credit at checkout",
+    color: "text-emerald-700",
+    bg: "bg-emerald-50",
+    ring: "ring-emerald-100",
+    Icon: Zap,
+    sign: "−",
+  },
+  ongoing: {
+    label: "Earns every year",
+    color: "text-violet-700",
+    bg: "bg-violet-50",
+    ring: "ring-violet-100",
+    Icon: Leaf,
+    sign: "+",
+  },
 }
 
-function PoweredByLeap() {
+function LeapMark() {
   return (
-    <div className="flex items-center justify-center gap-1.5 px-4 py-2 border-t bg-muted/20">
-      <svg className="h-3 w-3 opacity-40" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-      </svg>
-      <span className="text-[10px] text-muted-foreground">
-        Incentives by <span className="font-semibold text-foreground">Leap</span>
-        {" · Federal · State · Utility · VPP"}
-      </span>
-    </div>
+    <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+    </svg>
   )
 }
 
 /**
- * Renders a normalized {@link IncentiveView} — the shared card used on the PDP
- * and in checkout. `variant="compact"` drops the per-program breakdown.
+ * The shared incentive card — used on the PDP, in checkout, and on the
+ * confirmation page. Leads with the money ("$X back") so the eligibility story
+ * reads instantly, then breaks down the programs and how they're handled.
  */
 export function IncentiveResults({
   view,
@@ -39,7 +55,7 @@ export function IncentiveResults({
 }) {
   if (!view.eligible) {
     return (
-      <div className="flex gap-3 p-4 rounded-xl border bg-card text-sm text-muted-foreground">
+      <div className="flex gap-3 rounded-2xl border bg-card p-4 text-sm text-muted-foreground">
         <Info className="h-5 w-5 shrink-0 mt-0.5" />
         <span>
           No incentive programs are available for this item
@@ -49,89 +65,93 @@ export function IncentiveResults({
     )
   }
 
+  const heroValue = view.oneTimeBack > 0 ? view.oneTimeBack : view.upfrontAmount
+  const heroLabel = view.oneTimeBack > 0 ? "back after purchase" : "off at checkout"
+
   return (
-    <div className="rounded-xl border overflow-hidden bg-card">
-      {/* Headline */}
-      <div className="px-4 py-4 bg-gradient-to-r from-emerald-50 to-violet-50 border-b">
-        <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-widest">
-          Money back available
-        </p>
-        <p className="text-[22px] font-bold text-foreground leading-tight mt-0.5">
-          {view.upfrontAmount > 0 && <>{usd(view.upfrontAmount)} off at checkout</>}
-          {view.oneTimeBack > 0 && (
-            <>
-              {view.upfrontAmount > 0 ? " · " : ""}
-              {usd(view.oneTimeBack)} back after purchase
-            </>
+    <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      {/* Hero — lead with the money */}
+      <div className="relative border-b bg-gradient-to-br from-emerald-50 via-card to-violet-50 px-5 py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700">
+              You qualify for
+            </p>
+            <p className="tnum mt-1 text-[40px] font-bold leading-none text-emerald-700">
+              {usd(heroValue)}
+            </p>
+            <p className="mt-1.5 text-sm font-medium text-foreground/70">
+              {heroLabel}
+              {view.oneTimeBack > 0 && view.upfrontAmount > 0 && (
+                <> · {usd(view.upfrontAmount)} off at checkout</>
+              )}
+            </p>
+          </div>
+          {view.ongoingAmount > 0 && (
+            <div className="shrink-0 rounded-xl bg-violet-100/70 px-3.5 py-2.5 text-center ring-1 ring-violet-200/60">
+              <p className="tnum text-xl font-bold leading-none text-violet-700">
+                +{usd(view.ongoingAmount)}
+              </p>
+              <p className="mt-1 text-[11px] font-semibold text-violet-700/80">/yr with VPP</p>
+            </div>
           )}
-          {view.oneTimeBack === 0 && view.upfrontAmount === 0 && view.ongoingAmount > 0 && (
-            <>{usd(view.ongoingAmount)}/yr in earnings</>
-          )}
-          {view.ongoingAmount > 0 && (view.oneTimeBack > 0 || view.upfrontAmount > 0) && (
-            <span className="text-violet-600 font-semibold text-base">
-              {" "}
-              + {usd(view.ongoingAmount)}/yr
-            </span>
-          )}
-        </p>
+        </div>
         {view.utilityName && (
-          <p className="text-sm text-foreground/70 mt-1">
-            Programs from {view.utilityName}, filed for you by Comet after purchase.
-          </p>
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-card/80 px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            via {view.utilityName}
+          </span>
         )}
       </div>
 
-      {/* Program rows */}
+      {/* Program breakdown */}
       {variant === "full" && (
-        <div className="p-4 flex flex-col gap-3">
+        <div className="space-y-2.5 p-4">
           {view.programs.map((pg, i) => {
             const meta = WHEN_META[pg.when]
             const amount =
-              (pg.when === "ongoing" ? usd(pg.amount) + "/yr" : "+" + usd(pg.amount))
+              pg.when === "ongoing"
+                ? `+${usd(pg.amount)}/yr`
+                : `${meta.sign}${usd(pg.amount)}`
             return (
-              <div key={i} className="flex gap-3 p-3 rounded-xl border bg-white">
+              <div
+                key={i}
+                className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3"
+              >
                 <span
-                  className={`w-9 h-9 rounded-full shrink-0 inline-flex items-center justify-center ${meta.bg} ${meta.color}`}
+                  className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${meta.bg} ${meta.color} ring-1 ${meta.ring}`}
                 >
-                  <meta.Icon className="h-4 w-4" />
+                  <meta.Icon className="h-[18px] w-[18px]" />
                 </span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <span className="font-semibold text-foreground text-sm">{pg.name}</span>
-                    <span className={`font-bold text-sm whitespace-nowrap ${meta.color}`}>
-                      {amount}
-                    </span>
-                  </div>
-                  {pg.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {pg.description}
-                    </p>
-                  )}
-                  <span
-                    className={`inline-block mt-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${meta.bg} ${meta.color}`}
-                  >
-                    {meta.label}
-                  </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{pg.name}</p>
+                  <p className={`text-xs font-medium ${meta.color}`}>{meta.label}</p>
                 </div>
+                <span className={`tnum shrink-0 text-sm font-bold ${meta.color}`}>{amount}</span>
               </div>
             )
           })}
 
-          {view.connectUrl && (
-            <a
-              href={view.connectUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-primary hover:underline pt-1"
-            >
-              See how you get paid
-              <ArrowRight className="h-3.5 w-3.5" />
-            </a>
-          )}
+          {/* Clear info element (replaces the old "see how you get paid" CTA) */}
+          <div className="mt-1 flex items-start gap-2.5 rounded-xl bg-muted/60 px-3.5 py-3">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+            <p className="text-[13px] leading-snug text-muted-foreground">
+              Comet files these
+              {view.utilityName ? ` with ${view.utilityName}` : ""} for you after purchase — no
+              forms to chase. Leap tracks each rebate through to payment.
+            </p>
+          </div>
         </div>
       )}
 
-      <PoweredByLeap />
+      {/* Attribution */}
+      <div className="flex items-center justify-center gap-1.5 border-t bg-muted/30 px-4 py-2 text-muted-foreground">
+        <LeapMark />
+        <span className="text-[10px] font-medium">
+          Incentives by <span className="font-semibold text-foreground">Leap</span>
+          {" · Federal · State · Utility · VPP"}
+        </span>
+      </div>
     </div>
   )
 }

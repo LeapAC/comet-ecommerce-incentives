@@ -27,11 +27,18 @@ export function MobileNav() {
           </div>
           <nav className="flex flex-col space-y-4">
             <Link
-              href="/products"
+              href="/#products"
               className="text-lg font-medium hover:text-primary transition-colors"
               onClick={() => setOpen(false)}
             >
               Products
+            </Link>
+            <Link
+              href="/#how-it-works"
+              className="text-lg font-medium hover:text-primary transition-colors"
+              onClick={() => setOpen(false)}
+            >
+              How incentives work
             </Link>
           </nav>
         </SheetContent>

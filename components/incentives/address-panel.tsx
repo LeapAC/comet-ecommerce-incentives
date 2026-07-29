@@ -12,15 +12,14 @@ const EXAMPLE_ADDRESS: Address = {
   zip: "94103",
 }
 
-function fieldClass(extra = "") {
-  return `h-11 px-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all ${extra}`
-}
+const FIELD =
+  "h-11 w-full min-w-0 rounded-xl border border-input bg-card px-3.5 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/20"
 
 /**
  * Address entry that drives the shared incentives lookup. The Leap API needs a
  * full street address (it geocodes to find serving utilities), so we collect
  * one here rather than ZIP alone — with a one-click example to make the demo
- * frictionless.
+ * frictionless. Fully responsive: fields stack cleanly on mobile.
  */
 export function AddressPanel({
   heading = "See your EV charging incentives",
@@ -39,9 +38,9 @@ export function AddressPanel({
 
   if (applied && !editing) {
     return (
-      <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-        <Check className="h-4 w-4 text-primary shrink-0" />
-        <span className="text-sm font-medium text-foreground flex-1 truncate">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+        <Check className="h-4 w-4 shrink-0 text-emerald-600" />
+        <span className="min-w-0 flex-1 text-sm font-medium text-foreground">
           Incentives for {address?.line1}, {address?.city} {address?.state} {address?.zip}
         </span>
         <button
@@ -49,7 +48,7 @@ export function AddressPanel({
             setForm(address ?? form)
             setEditing(true)
           }}
-          className="text-sm font-medium text-primary hover:underline shrink-0"
+          className="shrink-0 text-sm font-semibold text-primary hover:underline"
         >
           Change
         </button>
@@ -69,14 +68,14 @@ export function AddressPanel({
   }
 
   return (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 sm:p-5">
-      <div className="flex items-start gap-4">
-        <span className="w-11 h-11 rounded-full bg-primary text-white inline-flex items-center justify-center shrink-0">
+    <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-card p-4 sm:p-5">
+      <div className="flex items-start gap-3.5">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
           <MapPin className="h-5 w-5" />
         </span>
-        <div className="flex-1">
+        <div className="min-w-0">
           <p className="font-semibold text-foreground">{heading}</p>
-          <p className="text-sm text-muted-foreground mt-0.5 text-pretty">{blurb}</p>
+          <p className="mt-0.5 text-sm text-muted-foreground text-pretty">{blurb}</p>
         </div>
       </div>
 
@@ -85,51 +84,53 @@ export function AddressPanel({
           value={form.line1}
           onChange={(e) => setForm((f) => ({ ...f, line1: e.target.value }))}
           placeholder="Street address"
-          className={fieldClass("w-full")}
+          className={FIELD}
           onKeyDown={(e) => e.key === "Enter" && submit()}
         />
-        <div className="grid grid-cols-[1fr_5rem_6rem] gap-2.5">
+        <div className="flex flex-col gap-2.5 sm:flex-row">
           <input
             value={form.city}
             onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
             placeholder="City"
-            className={fieldClass()}
+            className={`${FIELD} sm:flex-1`}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
-          <input
-            value={form.state}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, state: e.target.value.replace(/[^A-Za-z]/g, "").slice(0, 2) }))
-            }
-            placeholder="State"
-            maxLength={2}
-            className={fieldClass("uppercase")}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
-          <input
-            value={form.zip}
-            inputMode="numeric"
-            onChange={(e) =>
-              setForm((f) => ({ ...f, zip: e.target.value.replace(/\D/g, "").slice(0, 5) }))
-            }
-            placeholder="ZIP"
-            maxLength={5}
-            className={fieldClass()}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
+          <div className="flex gap-2.5">
+            <input
+              value={form.state}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, state: e.target.value.replace(/[^A-Za-z]/g, "").slice(0, 2) }))
+              }
+              placeholder="State"
+              maxLength={2}
+              className={`${FIELD} w-20 uppercase`}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+            />
+            <input
+              value={form.zip}
+              inputMode="numeric"
+              onChange={(e) =>
+                setForm((f) => ({ ...f, zip: e.target.value.replace(/\D/g, "").slice(0, 5) }))
+              }
+              placeholder="ZIP"
+              maxLength={5}
+              className={`${FIELD} flex-1 sm:w-28 sm:flex-none`}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-3 pt-0.5">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             onClick={submit}
             disabled={!ready}
-            className="h-11 px-5 rounded-lg bg-primary text-white text-sm font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95 transition-all"
+            className="h-11 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {cta}
           </button>
           <button
             type="button"
             onClick={() => setForm(EXAMPLE_ADDRESS)}
-            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
+            className="text-xs font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"
           >
             Use example address
           </button>

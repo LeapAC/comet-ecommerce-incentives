@@ -1,267 +1,226 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Zap, Leaf, Shield, Wifi, ArrowRight, Star } from "@/components/ui/lucide-icons"
-import { CartDrawer } from "@/components/cart-drawer"
-import { MobileNav } from "@/components/mobile-nav"
-import Link from "next/link"
+"use client"
 
-export default function HomePage() {
-  const products = [
-    {
-      id: 1,
-      name: "Comet Home Pro",
-      price: "$899",
-      image: "/modern-white-ev-charger-mounted-on-garage-wall.jpg",
-      description: "Professional-grade home charging with smart features",
-      features: ["22kW Fast Charging", "WiFi Connected", "Weather Resistant"],
-      badge: "Best Seller",
-    },
-    {
-      id: 2,
-      name: "Comet Compact",
-      price: "$599",
-      image: "/compact-sleek-ev-charger-for-apartments.jpg",
-      description: "Space-saving design perfect for apartments and condos",
-      features: ["11kW Charging", "Compact Design", "Easy Installation"],
-      badge: "Popular",
-    },
-    {
-      id: 3,
-      name: "Comet Business",
-      price: "$1,299",
-      image: "/commercial-ev-charging-station-with-dual-ports.jpg",
-      description: "Commercial-grade charging for businesses and fleets",
-      features: ["Dual Port", "Load Management", "Payment Integration"],
-      badge: "Commercial",
-    },
-    {
-      id: 4,
-      name: "Comet Ultra",
-      price: "$1,599",
-      image: "/premium-ev-charger-with-digital-display-and-sleek-.jpg",
-      description: "Ultimate charging experience with premium features",
-      features: ["50kW DC Fast", "Touch Display", "Premium Materials"],
-      badge: "Premium",
-    },
-    {
-      id: 5,
-      name: "Smart Splitter",
-      price: "$299",
-      image: "/smart-electrical-splitter-device-for-ev-charging.jpg",
-      description: "Intelligent power distribution for multiple devices",
-      features: ["Load Balancing", "Smart Control", "Energy Monitoring"],
-      badge: "Accessory",
-    },
-  ]
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+import { PRODUCTS } from "@/lib/products"
+import { usd } from "@/lib/incentives/model"
+import { useCart } from "@/lib/cart-context"
+import { useToast } from "@/hooks/use-toast"
+import { Zap, ArrowRight, Star, MapPin, Gift, Leaf, ShoppingCart } from "@/components/ui/lucide-icons"
+
+function ProductCard({ product }: { product: (typeof PRODUCTS)[number] }) {
+  const { dispatch } = useCart()
+  const { toast } = useToast()
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <Zap className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-foreground">Comet</span>
-          </Link>
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link
-              href="/products"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Products
-            </Link>
-            <CartDrawer />
-          </nav>
-          <MobileNav />
-        </div>
-      </header>
+    <div className="group flex flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <Link href={`/products/${product.id}`} className="relative block overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="h-52 w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        />
+        <span className="absolute left-3 top-3">
+          <Badge variant="secondary" className="shadow-sm">
+            {product.badge}
+          </Badge>
+        </span>
+        <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-card/95 px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur">
+          <Star className="h-3 w-3 fill-primary text-primary" />
+          <span className="tnum">{product.rating}</span>
+        </span>
+      </Link>
 
-      {/* Hero Section */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="container">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <Badge variant="secondary" className="w-fit">
-                  <Leaf className="h-3 w-3 mr-1" />
-                  Sustainable Charging
-                </Badge>
-                <h1 className="text-4xl lg:text-6xl font-bold text-balance leading-tight">
-                  Power Your Future with <span className="text-primary">Smart EV Charging</span>
-                </h1>
-                <p className="text-xl text-muted-foreground text-pretty leading-relaxed">
-                  Experience the next generation of electric vehicle charging with Comet's innovative, eco-friendly
-                  solutions designed for modern homes and businesses.
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="text-lg px-8" asChild>
-                  <Link href="/products">
-                    Shop Now
+      <div className="flex flex-1 flex-col p-4">
+        <Link
+          href={`/products/${product.id}`}
+          className="text-[17px] font-semibold text-foreground transition-colors hover:text-primary"
+        >
+          {product.name}
+        </Link>
+        <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Zap className="h-3.5 w-3.5 shrink-0" />
+          {product.power} · {product.connector}
+        </div>
+
+        <div className="mt-4 flex items-end justify-between gap-2">
+          <div>
+            <span className="tnum text-2xl font-bold text-foreground">{usd(product.price)}</span>
+            {product.originalPrice && (
+              <span className="tnum ml-1.5 text-sm text-muted-foreground line-through">
+                {usd(product.originalPrice)}
+              </span>
+            )}
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-100">
+            <Gift className="h-3 w-3" />
+            Incentives
+          </span>
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          <Button variant="outline" size="sm" className="flex-1 bg-card" asChild>
+            <Link href={`/products/${product.id}`}>Details</Link>
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={() => {
+              dispatch({
+                type: "ADD_ITEM",
+                payload: {
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image,
+                  category: product.category,
+                },
+              })
+              toast({ title: "Added to cart", description: `${product.name} added to your cart.` })
+            }}
+          >
+            <ShoppingCart className="mr-1 h-3.5 w-3.5" />
+            Add
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const STEPS = [
+  {
+    Icon: ShoppingCart,
+    title: "Pick your charger",
+    body: "Browse our range of home and commercial EV chargers, from compact to DC-fast.",
+  },
+  {
+    Icon: MapPin,
+    title: "Enter your address",
+    body: "We check live utility programs for your address and show exactly what you qualify for.",
+  },
+  {
+    Icon: Gift,
+    title: "We handle the rebates",
+    body: "Comet files every rebate for you after purchase — no forms to chase, no waiting on hold.",
+  },
+]
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-background">
+      <SiteHeader />
+
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-50/70 via-background to-violet-50/40" />
+        <div className="container relative max-w-[1200px] py-16 lg:py-24">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div className="space-y-7">
+              <Badge variant="secondary" className="w-fit">
+                <Leaf className="mr-1 h-3 w-3" />
+                Chargers with built-in incentives
+              </Badge>
+              <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight text-foreground lg:text-6xl">
+                Charge smarter.
+                <br />
+                <span className="text-primary">Get paid</span> to do it.
+              </h1>
+              <p className="max-w-md text-lg leading-relaxed text-muted-foreground text-pretty">
+                Premium EV chargers that come with the rebates, utility credits, and Virtual Power
+                Plant earnings you qualify for — surfaced at checkout, filed for you after.
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button size="lg" className="px-8 text-base" asChild>
+                  <Link href="/#products">
+                    Shop chargers
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
+                <Button size="lg" variant="outline" className="bg-card px-8 text-base" asChild>
+                  <Link href="/#how-it-works">How it works</Link>
+                </Button>
               </div>
-              <div className="flex items-center gap-8 pt-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-muted-foreground">4.9/5 from 2,000+ reviews</span>
-                </div>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1 text-sm text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <Star className="h-4 w-4 fill-primary text-primary" /> 4.9/5 · 2,000+ reviews
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Gift className="h-4 w-4 text-emerald-600" /> Rebates filed for you
+                </span>
               </div>
             </div>
+
             <div className="relative">
               <img
                 src="/modern-ev-charger-in-use-with-electric-car-chargin.jpg"
-                alt="Comet EV Charger in use"
-                className="w-full h-auto rounded-2xl shadow-2xl"
+                alt="Comet EV charger in use"
+                className="h-auto w-full rounded-3xl border shadow-xl"
               />
-              <div className="absolute -bottom-6 -left-6 bg-card p-6 rounded-xl shadow-lg border">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <Zap className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Fast Charging</p>
-                    <p className="text-sm text-muted-foreground">Up to 50kW DC</p>
-                  </div>
-                </div>
+              <div className="absolute -bottom-5 -left-5 hidden rounded-2xl border bg-card p-4 shadow-lg sm:block">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-emerald-700">
+                  Money back available
+                </p>
+                <p className="tnum mt-0.5 text-2xl font-bold text-foreground">
+                  up to $647 <span className="text-base font-semibold text-muted-foreground">back</span>
+                </p>
+                <p className="text-xs text-muted-foreground">on a home charger in CA</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-muted/30">
-        <div className="container">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-balance">Why Choose Comet?</h2>
-            <p className="text-xl text-muted-foreground text-balance max-w-2xl mx-auto">
-              Advanced technology meets sustainable design for the ultimate charging experience
+      {/* How it works */}
+      <section id="how-it-works" className="scroll-mt-20 border-b bg-muted/30 py-16">
+        <div className="container max-w-[1100px]">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight lg:text-4xl">Incentives, without the paperwork</h2>
+            <p className="mt-3 text-lg text-muted-foreground text-pretty">
+              Every eligible rebate, utility program, and VPP offer — surfaced as you shop and handled
+              for you after you buy.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardHeader>
-                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle>Lightning Fast</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Charge your EV up to 10x faster than standard outlets with our advanced charging technology
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardHeader>
-                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Wifi className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle>Smart Connected</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Monitor and control your charging remotely with our intuitive mobile app and WiFi connectivity
-                </CardDescription>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardHeader>
-                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="h-8 w-8 text-primary" />
-                </div>
-                <CardTitle>Built to Last</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-base">
-                  Weather-resistant design with premium materials ensures reliable performance for years to come
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Products Preview */}
-      <section className="py-20">
-        <div className="container">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-balance">Our Product Range</h2>
-            <p className="text-xl text-muted-foreground text-balance max-w-2xl mx-auto">
-              From compact home chargers to commercial solutions, find the perfect fit for your needs
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.slice(0, 3).map((product) => (
-              <Card key={product.id} className="group hover:shadow-lg transition-shadow">
-                <CardHeader className="p-0">
-                  <div className="relative">
-                    <img
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.name}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                    <Badge className="absolute top-4 left-4" variant="secondary">
-                      {product.badge}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div>
-                      <CardTitle className="text-xl">{product.name}</CardTitle>
-                      <CardDescription className="mt-2">{product.description}</CardDescription>
-                    </div>
-                    <div className="space-y-2">
-                      {product.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="h-1.5 w-1.5 bg-primary rounded-full" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between pt-4">
-                      <span className="text-2xl font-bold text-primary">{product.price}</span>
-                      <Button variant="outline" size="sm" asChild>
-                        <Link href="/products">Learn More</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {STEPS.map((s, i) => (
+              <div key={i} className="relative rounded-2xl border bg-card p-6 shadow-sm">
+                <span className="tnum absolute right-5 top-5 text-sm font-bold text-muted-foreground/40">
+                  0{i + 1}
+                </span>
+                <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <s.Icon className="h-6 w-6" />
+                </span>
+                <h3 className="mt-4 text-lg font-semibold">{s.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
+              </div>
             ))}
           </div>
-          <div className="text-center mt-12">
-            <Button size="lg" variant="outline" asChild>
-              <Link href="/products">
-                View All Products
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+        </div>
+      </section>
+
+      {/* Products */}
+      <section id="products" className="scroll-mt-20 py-16">
+        <div className="container max-w-[1200px]">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight lg:text-4xl">Our chargers</h2>
+              <p className="mt-2 text-muted-foreground">
+                Open any charger to see the incentives available at your address.
+              </p>
+            </div>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {PRODUCTS.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-muted/30 py-12">
-        <div className="container max-w-[1280px] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link href="/" className="flex items-center space-x-2">
-            <Zap className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">Comet</span>
-          </Link>
-          <p className="text-sm text-muted-foreground text-center">
-            Reference implementation · Incentives powered by the Leap Incentives API
-          </p>
-          <span className="text-sm text-muted-foreground">© 2026 Comet</span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }

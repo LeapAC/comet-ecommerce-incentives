@@ -1,31 +1,30 @@
 import { NextResponse } from "next/server"
 
-import {
-  renderConfirmationEmail,
-  confirmationSubject,
-  type ConfirmationEmailData,
-} from "@/lib/email/confirmation-email"
-import { sendConfirmationEmail } from "@/lib/email/send"
+import { renderConfirmationPreview } from "@/lib/email/leap-template"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 interface ConfirmBody {
-  email?: string
   customerName?: string
   orderId?: string
-  items?: Array<{ name?: string; quantity?: number; price?: number }>
   oneTimeBack?: number
-  ongoingAmount?: number
   utilityName?: string | null
-  connectUrl?: string | null
+  programName?: string | null
 }
 
 /**
  * POST /api/order/confirm
- * Builds the confirmation email, attempts to send it via Resend (best-effort),
- * and returns the rendered HTML so the confirmation page can preview it — even
- * when delivery is disabled (no RESEND_API_KEY).
+ *
+ * PREVIEW ONLY — renders the REAL Leap "information received" email (vendored
+ * from connect-incentives/email-templates) with the order's data and returns it
+ * as HTML for the confirmation page to display.
+ *
+ * There is intentionally NO send path. Comet is an open-source reference
+ * partner; it cannot and must not send Leap's transactional emails. Leap owns
+ * delivery on the partner's behalf (via Resend, from the incentives-service
+ * `applications` edge function). This endpoint only shows the customer what the
+ * real email looks like.
  */
 export async function POST(request: Request) {
   let body: ConfirmBody
@@ -35,34 +34,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
   }
 
-  const data: ConfirmationEmailData = {
+  const { subject, html } = renderConfirmationPreview({
     customerName: body.customerName?.trim() || "there",
-    orderId: body.orderId?.trim() || "COMET-DEMO",
-    items: (body.items ?? []).map((it) => ({
-      name: it.name ?? "Item",
-      quantity: Math.max(1, Number(it.quantity) || 1),
-      price: Number(it.price) || 0,
-    })),
-    oneTimeBack: Number(body.oneTimeBack) || 0,
-    ongoingAmount: Number(body.ongoingAmount) || 0,
-    utilityName: body.utilityName ?? null,
-    connectUrl: body.connectUrl ?? null,
     companyName: "Comet",
-  }
-
-  const subject = confirmationSubject(data)
-  const html = renderConfirmationEmail(data)
-
-  const result = await sendConfirmationEmail({
-    to: body.email?.trim() ?? "",
-    subject,
-    html,
+    utilityName: body.utilityName ?? null,
+    oneTimeBack: Number(body.oneTimeBack) || 0,
+    programName: body.programName ?? null,
+    orderId: body.orderId?.trim() || "COMET-DEMO",
   })
 
-  return NextResponse.json({
-    sent: result.sent,
-    reason: result.reason,
-    subject,
-    html,
-  })
+  return NextResponse.json({ previewOnly: true, subject, html })
 }
