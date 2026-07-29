@@ -191,10 +191,17 @@ components/incentives/
 
 - **Auth is `Authorization: Bearer`, not `x-api-key`.** The incentives gateway
   rejects `x-api-key` (403). Bearer is what the partner key uses.
-- **`upfront_amount` is always 0** in the current API — incentives are
-  post‑purchase (paid at install) plus ongoing (VPP). The UI reflects this
-  honestly: there is no fake "instant checkout discount"; checkout shows money
-  back *after* purchase and the resulting effective cost.
+- **Payment types drive the money flow.** The API classifies every tier by
+  `payment_type`, and the UI applies each one distinctly:
+  - `UPFRONT` → a **point‑of‑sale discount**, subtracted from the due‑today
+    total at checkout ("At checkout" / "Instant incentive credit"). *Reserved:
+    `upfront_amount` is always 0 today, so live totals are unchanged.*
+  - `INSTALL` → paid **after install**; surfaced as "back after purchase"
+    (`oneTimeBack`) and used to compute the effective cost.
+  - `ONGOING` → **recurring**, shown as `$/yr` (e.g. VPP participation).
+
+  `oneTimeBack` is INSTALL money only — it never includes the UPFRONT checkout
+  discount or ongoing earnings.
 - **Customers dedupe by address.** The lookup keys a customer on
   `(partner, address_line_1, address_line_2, zip)`, so repeated lookups at the
   same address resolve to the same customer regardless of `reference_id`.

@@ -149,7 +149,11 @@ export default function CheckoutPage() {
   const shipCost = ship === "express" ? 29.99 : ship === "overnight" ? 49.99 : 9.99
   const subtotal = state.total
   const tax = subtotal * 0.08
-  const dueToday = subtotal + shipCost + tax
+  // UPFRONT incentives are a point-of-sale discount — they reduce due-today.
+  // (Reserved in the current API: upfront_amount is always 0, so live totals
+  // are unchanged; INSTALL/ongoing money is returned after purchase instead.)
+  const upfront = view?.eligible ? view.upfrontAmount : 0
+  const dueToday = Math.max(0, subtotal + shipCost + tax - upfront)
   const installBack = view?.eligible ? view.oneTimeBack : 0
   const ongoing = view?.eligible ? view.ongoingAmount : 0
   const effectiveCost = Math.max(0, dueToday - installBack)
@@ -466,6 +470,13 @@ export default function CheckoutPage() {
                 <Row label="Subtotal" value={`$${subtotal.toFixed(2)}`} />
                 <Row label="Shipping" value={`$${shipCost.toFixed(2)}`} />
                 <Row label="Tax" value={`$${tax.toFixed(2)}`} />
+                {upfront > 0 && (
+                  <Row
+                    label="Instant incentive credit"
+                    value={`−$${upfront.toFixed(2)}`}
+                    color="text-emerald-700"
+                  />
+                )}
                 <div className="border-t pt-3 flex justify-between font-semibold text-foreground">
                   <span>Due today</span>
                   <span>${dueToday.toFixed(2)}</span>

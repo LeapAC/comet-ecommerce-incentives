@@ -57,8 +57,17 @@ export function IncentiveResults({
           Money back available
         </p>
         <p className="text-[22px] font-bold text-foreground leading-tight mt-0.5">
-          {usd(view.oneTimeBack)} back after purchase
-          {view.ongoingAmount > 0 && (
+          {view.upfrontAmount > 0 && <>{usd(view.upfrontAmount)} off at checkout</>}
+          {view.oneTimeBack > 0 && (
+            <>
+              {view.upfrontAmount > 0 ? " · " : ""}
+              {usd(view.oneTimeBack)} back after purchase
+            </>
+          )}
+          {view.oneTimeBack === 0 && view.upfrontAmount === 0 && view.ongoingAmount > 0 && (
+            <>{usd(view.ongoingAmount)}/yr in earnings</>
+          )}
+          {view.ongoingAmount > 0 && (view.oneTimeBack > 0 || view.upfrontAmount > 0) && (
             <span className="text-violet-600 font-semibold text-base">
               {" "}
               + {usd(view.ongoingAmount)}/yr

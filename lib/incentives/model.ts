@@ -28,9 +28,18 @@ export interface IncentiveView {
   installAmount: number
   /** Recurring money, per year (e.g. VPP participation). */
   ongoingAmount: number
-  /** Reserved pre-install kind — currently always 0 from the API. */
+  /**
+   * Point-of-sale discount applied to the due-today total (a "pre-install"
+   * incentive kind). Reserved — the API currently always returns 0 — but
+   * modelled correctly: UPFRONT reduces what the customer pays at checkout, it
+   * is NOT money returned after purchase.
+   */
   upfrontAmount: number
-  /** Total one-time money back after purchase (upfront + install). */
+  /**
+   * One-time money returned to the customer AFTER purchase (from INSTALL-paid
+   * programs). Excludes {@link upfrontAmount}, which is a checkout discount, and
+   * excludes ongoing/VPP earnings.
+   */
   oneTimeBack: number
   programs: DisplayProgram[]
   utilityName: string | null
@@ -88,7 +97,9 @@ export function toIncentiveView(result: EligibilityResult): IncentiveView {
     installAmount,
     ongoingAmount,
     upfrontAmount,
-    oneTimeBack: installAmount + upfrontAmount,
+    // Money back AFTER purchase = INSTALL only. UPFRONT is a checkout discount
+    // (subtracted from due-today), not a post-purchase return.
+    oneTimeBack: installAmount,
     programs,
     utilityName: result.utilities?.primary?.name ?? null,
     connectUrl: result.connect_url ?? null,

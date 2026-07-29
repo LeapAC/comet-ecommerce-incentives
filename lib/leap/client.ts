@@ -19,6 +19,13 @@ import type {
 
 const LOOKUP_PATH = "/v1.1/global-connect/incentives/lookups"
 
+/**
+ * Bounded timeout for the upstream lookup. Without it, a slow/unreachable Leap
+ * API would leave the PDP/checkout stuck in the loading state until the platform
+ * function timeout — the UI's error/retry state would never be reached.
+ */
+const LOOKUP_TIMEOUT_MS = 10_000
+
 function baseUrl(): string {
   const url = process.env.LEAP_API_BASE_URL
   if (!url) {
@@ -43,6 +50,26 @@ function apiKey(): string {
   return key
 }
 
+/** Extract a human-readable message from an error body, coercing non-string
+ *  `error`/`message` fields (the gateway sometimes returns a structured object)
+ *  so callers never see `"[object Object]"`. */
+function errorMessage(
+  body: LeapErrorResponse,
+  text: string,
+  status: number,
+): string {
+  const candidate = body.error ?? body.message
+  if (typeof candidate === "string" && candidate.trim()) return candidate
+  if (candidate != null) {
+    try {
+      return JSON.stringify(candidate)
+    } catch {
+      /* fall through */
+    }
+  }
+  return text?.trim() || `Leap API returned ${status}`
+}
+
 export class LeapApiError extends Error {
   constructor(
     readonly code: string,
@@ -63,31 +90,63 @@ export class LeapApiError extends Error {
 export async function lookupIncentives(
   request: EligibilityRequest,
 ): Promise<EligibilityResult> {
-  const res = await fetch(`${baseUrl()}${LOOKUP_PATH}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-    // Incentive results depend on live utility/program data — never cache.
-    cache: "no-store",
-  })
+  // Resolve config first so a missing env surfaces as a config_error, not a
+  // spurious network_error from inside the try/catch below.
+  const url = `${baseUrl()}${LOOKUP_PATH}`
+  const authorization = `Bearer ${apiKey()}`
 
-  const text = await res.text()
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), LOOKUP_TIMEOUT_MS)
 
-  if (!res.ok) {
-    let body: LeapErrorResponse = {}
-    try {
-      body = text ? (JSON.parse(text) as LeapErrorResponse) : {}
-    } catch {
-      // non-JSON error body — keep the raw text as the message
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: authorization,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+      // Incentive results depend on live utility/program data — never cache.
+      cache: "no-store",
+      signal: controller.signal,
+    })
+
+    const text = await res.text()
+
+    if (!res.ok) {
+      let body: LeapErrorResponse = {}
+      try {
+        body = text ? (JSON.parse(text) as LeapErrorResponse) : {}
+      } catch {
+        // non-JSON error body — keep the raw text as the message
+      }
+      const code = body.error_code ?? body.code ?? `http_${res.status}`
+      throw new LeapApiError(
+        code,
+        errorMessage(body, text, res.status),
+        res.status,
+        body.details,
+      )
     }
-    const code = body.error_code ?? body.code ?? `http_${res.status}`
-    const message =
-      body.error ?? body.message ?? text ?? `Leap API returned ${res.status}`
-    throw new LeapApiError(code, message, res.status, body.details)
-  }
 
-  return JSON.parse(text) as EligibilityResult
+    return JSON.parse(text) as EligibilityResult
+  } catch (err) {
+    // Preserve typed errors (non-2xx mapping above).
+    if (err instanceof LeapApiError) throw err
+    // Timeout (our abort) vs. any other network/transport failure.
+    if (controller.signal.aborted || (err as { name?: string })?.name === "AbortError") {
+      throw new LeapApiError(
+        "timeout",
+        `Leap API request timed out after ${LOOKUP_TIMEOUT_MS}ms`,
+        504,
+      )
+    }
+    throw new LeapApiError(
+      "network_error",
+      err instanceof Error ? err.message : "Network error reaching the Leap API",
+      502,
+    )
+  } finally {
+    clearTimeout(timer)
+  }
 }

@@ -124,11 +124,12 @@ export interface EligibilityResult {
   }
 }
 
-/** Typed error body the API returns on non-2xx responses. */
+/** Typed error body the API returns on non-2xx responses. `error`/`message` are
+ *  usually strings but the gateway occasionally returns a structured object. */
 export interface LeapErrorResponse {
-  error?: string
+  error?: unknown
   error_code?: string
   code?: string
-  message?: string
+  message?: unknown
   details?: unknown
 }
