@@ -33,20 +33,6 @@ export function MobileNav() {
             >
               Products
             </Link>
-            <Link
-              href="/about"
-              className="text-lg font-medium hover:text-primary transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              href="/support"
-              className="text-lg font-medium hover:text-primary transition-colors"
-              onClick={() => setOpen(false)}
-            >
-              Support
-            </Link>
           </nav>
         </SheetContent>
       </Sheet>

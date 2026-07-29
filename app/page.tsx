@@ -71,18 +71,6 @@ export default function HomePage() {
             >
               Products
             </Link>
-            <Link
-              href="/about"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              About
-            </Link>
-            <Link
-              href="/support"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Support
-            </Link>
             <CartDrawer />
           </nav>
           <MobileNav />
@@ -113,9 +101,6 @@ export default function HomePage() {
                     Shop Now
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent">
-                  Learn More
                 </Button>
               </div>
               <div className="flex items-center gap-8 pt-4">
@@ -265,64 +250,16 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted/30 py-16">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <Zap className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold">Comet</span>
-              </Link>
-              <p className="text-muted-foreground">
-                Leading the future of electric vehicle charging with innovative, sustainable solutions.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold">Products</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/products" className="block hover:text-foreground transition-colors">
-                  Home Chargers
-                </Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">
-                  Commercial
-                </Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">
-                  Accessories
-                </Link>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold">Support</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/support" className="block hover:text-foreground transition-colors">
-                  Installation
-                </Link>
-                <Link href="/support" className="block hover:text-foreground transition-colors">
-                  Warranty
-                </Link>
-                <Link href="/support" className="block hover:text-foreground transition-colors">
-                  Contact
-                </Link>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold">Company</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/about" className="block hover:text-foreground transition-colors">
-                  About Us
-                </Link>
-                <Link href="/careers" className="block hover:text-foreground transition-colors">
-                  Careers
-                </Link>
-                <Link href="/news" className="block hover:text-foreground transition-colors">
-                  News
-                </Link>
-              </div>
-            </div>
-          </div>
-          <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; 2024 Comet. All rights reserved. Powering the future of transportation.</p>
-          </div>
+      <footer className="bg-muted/30 py-12">
+        <div className="container max-w-[1280px] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <Link href="/" className="flex items-center space-x-2">
+            <Zap className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold">Comet</span>
+          </Link>
+          <p className="text-sm text-muted-foreground text-center">
+            Reference implementation · Incentives powered by the Leap Incentives API
+          </p>
+          <span className="text-sm text-muted-foreground">© 2026 Comet</span>
         </div>
       </footer>
     </div>

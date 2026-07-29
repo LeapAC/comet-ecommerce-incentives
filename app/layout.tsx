@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { CartProvider } from "@/lib/cart-context"
-import { ZipProvider } from "@/lib/zip-context"
+import { IncentivesProvider } from "@/lib/incentives/context"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
@@ -29,10 +29,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans ${inter.variable} antialiased`}>
         <CartProvider>
-          <ZipProvider>
+          <IncentivesProvider>
             <Suspense fallback={null}>{children}</Suspense>
             <Toaster />
-          </ZipProvider>
+          </IncentivesProvider>
         </CartProvider>
         <Analytics />
       </body>
