@@ -25,6 +25,15 @@ PDP and complete an order.
 
 ## How the Leap Incentives API is called
 
+> **Leap docs.** The public Leap Incentives API reference — eligibility,
+> programs, Connect URLs, and applications — lives at
+> **[docs.incentives.leap.energy](https://docs.incentives.leap.energy)**. Comet
+> integrates Leap's **Global Connect** partner‑lookup surface
+> (`POST /v1.1/global-connect/incentives/lookups`, Bearer partner key). This
+> README documents that surface and the reference‑implementation specifics
+> (device‑ID mapping, server‑only key, staging, email preview) rather than
+> restating the platform docs.
+
 The lookup is **always server‑side**. The partner API key never reaches the
 browser: the client calls an internal Next.js route handler, which calls Leap.
 
