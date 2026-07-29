@@ -87,15 +87,18 @@ export function AddressPanel({
           className={FIELD}
           onKeyDown={(e) => e.key === "Enter" && submit()}
         />
-        <div className="flex flex-col gap-2.5 sm:flex-row">
+        {/* Grid tracks (not flex widths) define each field, so widths never
+            collide with the shared w-full class. Mobile: city full, then
+            [state | zip]. Desktop: city | state | zip on one row. */}
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_5rem_7rem]">
           <input
             value={form.city}
             onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))}
             placeholder="City"
-            className={`${FIELD} sm:flex-1`}
+            className={FIELD}
             onKeyDown={(e) => e.key === "Enter" && submit()}
           />
-          <div className="flex gap-2.5">
+          <div className="grid grid-cols-[5rem_1fr] gap-2.5 sm:contents">
             <input
               value={form.state}
               onChange={(e) =>
@@ -103,7 +106,7 @@ export function AddressPanel({
               }
               placeholder="State"
               maxLength={2}
-              className={`${FIELD} w-20 uppercase`}
+              className={`${FIELD} uppercase`}
               onKeyDown={(e) => e.key === "Enter" && submit()}
             />
             <input
@@ -114,7 +117,7 @@ export function AddressPanel({
               }
               placeholder="ZIP"
               maxLength={5}
-              className={`${FIELD} flex-1 sm:w-28 sm:flex-none`}
+              className={FIELD}
               onKeyDown={(e) => e.key === "Enter" && submit()}
             />
           </div>

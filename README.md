@@ -4,17 +4,19 @@ A minimal EV‑charger e‑commerce site that shows how an online store uses the
 **Leap Incentives API** to drive conversion. It is a *reference implementation*:
 the code is intentionally small and the integration points are the whole point.
 
-Incentives show up in exactly two places — the two that matter for conversion:
+Incentives show up right where they drive conversion:
 
 1. **Product detail page (PDP)** — *awareness.* A shopper enters their address
    and sees the real rebates, utility programs, and Virtual Power Plant (VPP)
    earnings their charger qualifies for.
-2. **Checkout** — *applied.* The shipping address drives a live lookup; the
+2. **Cart** — *reinforcement.* The eligible‑savings summary follows the shopper
+   into the cart.
+3. **Checkout** — *applied.* The shipping address drives a live lookup; the
    order summary shows the money coming back after purchase and the effective
    cost.
 
-Plus a **post‑purchase confirmation** page with a demo email showing how the
-customer's incentive claim reaches them.
+Plus a **post‑purchase confirmation** page that previews the real Leap email the
+customer will receive.
 
 Everything else (catalog, cart) is deliberately thin — just enough to reach a
 PDP and complete an order.
@@ -107,21 +109,26 @@ Authorization: Bearer <LEAP_API_KEY>
 
 ---
 
-## Post‑purchase confirmation email (Resend)
+## Post‑purchase confirmation email (preview only — Leap‑managed)
 
-On the confirmation page we render — and attempt to send — a confirmation email
-via [Resend](https://resend.com), mirroring the "{Company} via Leap" style of
-Leap's own transactional emails. It **degrades gracefully**: if `RESEND_API_KEY`
-is not set, the email is still rendered on‑screen as a preview and nothing
-crashes.
+**Leap owns email delivery on behalf of its partners.** An open‑source reference
+store like Comet does not — and must not — send Leap's transactional emails. So
+the confirmation page **renders the real Leap email as a preview** (exactly what
+the customer will receive once Leap sends it) and sends nothing.
 
-- Builder: [`lib/email/confirmation-email.ts`](lib/email/confirmation-email.ts)
-  (self‑contained inline HTML).
-- Sender: [`lib/email/send.ts`](lib/email/send.ts) (`server-only`).
-- Route: [`app/api/order/confirm/route.ts`](app/api/order/confirm/route.ts).
+- The template is the real *"We've received your information"* email, vendored
+  **verbatim** from
+  `connect-incentives/email-templates/email-template-resend.html` — the same file
+  that connect‑incentives deploys to Resend and the incentives‑service
+  `applications` edge function sends. It lives at
+  [`lib/email/leap-confirmation-template.ts`](lib/email/leap-confirmation-template.ts).
+- A tiny Handlebars‑subset renderer fills it with the order's data:
+  [`lib/email/leap-template.ts`](lib/email/leap-template.ts).
+- The route is **preview‑only, no send**:
+  [`app/api/order/confirm/route.ts`](app/api/order/confirm/route.ts).
 
-To send for real, set `RESEND_API_KEY` (and verify a sending domain in Resend —
-the demo uses Resend's `onboarding@resend.dev` sender).
+There is intentionally **no send path and no email API key**. To change the
+email, edit the source template in `connect-incentives` and re‑copy it here.
 
 ---
 
@@ -133,13 +140,11 @@ Create `.env.local` (git‑ignored):
 # Leap Incentives API — staging
 LEAP_API_BASE_URL=https://api.staging.leap.energy
 LEAP_API_KEY=<your Comet partner bearer token>   # sent as: Authorization: Bearer …
-
-# Optional — enables real confirmation email delivery
-RESEND_API_KEY=<your Resend API key>
 ```
 
-`LEAP_API_KEY` and `RESEND_API_KEY` are secrets — keep them server‑side only. On
-Vercel, add them as **Sensitive** environment variables.
+`LEAP_API_KEY` is a secret — keep it server‑side only. On Vercel, add it as a
+**Sensitive** environment variable. (No email API key is needed — the
+confirmation email is preview‑only; see above.)
 
 ---
 
@@ -152,11 +157,11 @@ pnpm dev        # http://localhost:3000
 
 Then:
 
-1. Open a product → **Incentives & programs** → *Use example address* →
+1. Open a charger → **Incentives & programs** → *Use example address* →
    *Check incentives*. Real programs for that address render.
-2. Add to cart → **Checkout** → fill the shipping address → the order summary
-   shows incentives applied.
-3. *Complete order* → confirmation page with the demo email preview.
+2. Add to cart → the cart shows your eligible savings → **Checkout** → fill the
+   shipping address → the order summary shows incentives applied.
+3. *Complete order* → confirmation page with a preview of the real Leap email.
 
 `pnpm build` produces the production build.
 
@@ -166,23 +171,26 @@ Then:
 
 ```
 app/
-  page.tsx                        Landing (minimal — routes to products)
-  products/page.tsx               Catalog (navigation only, no incentives)
-  products/[id]/page.tsx          PDP  ── incentives awareness
-  checkout/page.tsx               Checkout ── incentives applied + confirmation
-  api/incentives/lookup/route.ts  Server route → Leap lookup
-  api/order/confirm/route.ts      Server route → Resend confirmation email
+  page.tsx                          Storefront — hero, "how it works", product grid → PDPs
+  products/[id]/page.tsx            PDP  ── incentives awareness
+  checkout/page.tsx                 Checkout ── incentives applied + confirmation
+  api/incentives/lookup/route.ts    Server route → Leap lookup (Bearer, server-only)
+  api/order/confirm/route.ts        Server route → real Leap email preview (no send)
 lib/
-  leap/client.ts                  server-only Leap API client (Bearer auth)
-  leap/types.ts                   Leap request/response types
-  incentives/model.ts             Normalizes API response → display model
-  incentives/context.tsx          Shared address + lookup cache (client)
-  email/confirmation-email.ts     Confirmation email HTML
-  email/send.ts                   Resend send (graceful degradation)
-  products.ts                     Products + their device-catalog UUIDs
-components/incentives/
-  address-panel.tsx               Address entry (drives the lookup)
-  incentive-results.tsx           Shared result card (PDP + checkout)
+  leap/client.ts                    server-only Leap API client (Bearer auth, timeout)
+  leap/types.ts                     Leap request/response types
+  incentives/model.ts               Normalizes API response → display model
+  incentives/context.tsx            Shared address + lookup cache (client)
+  incentives/cart.ts                Cart → Leap device list
+  email/leap-confirmation-template.ts   Real Leap email template (vendored verbatim)
+  email/leap-template.ts            Handlebars-subset renderer + order → template vars
+  products.ts                       Products + their device-catalog UUIDs
+components/
+  site-header.tsx · site-footer.tsx     Shared chrome (consistency)
+  cart-drawer.tsx                   Cart + live incentive summary
+  incentives/address-panel.tsx      Address entry (drives the lookup)
+  incentives/incentive-results.tsx  Shared result card (PDP · checkout · confirmation)
+  incentives/cart-incentive-summary.tsx   Compact savings summary in the cart
 ```
 
 ---
