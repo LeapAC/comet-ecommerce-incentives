@@ -1,18 +1,18 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useEffect, useMemo, useState } from "react"
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CartDrawer } from "@/components/cart-drawer"
-import { MobileNav } from "@/components/mobile-nav"
-import { PriceBreakdown } from "@/components/incentives/price-breakdown"
-import { ProgramList } from "@/components/incentives/program-list"
-import { LocationBanner } from "@/components/incentives/location-banner"
+import { SiteHeader } from "@/components/site-header"
+import { SiteFooter } from "@/components/site-footer"
+import { AddressPanel } from "@/components/incentives/address-panel"
+import { IncentiveResults } from "@/components/incentives/incentive-results"
 import { useCart } from "@/lib/cart-context"
-import { useZip } from "@/lib/zip-context"
+import { useIncentives } from "@/lib/incentives/context"
 import { PRODUCTS } from "@/lib/products"
-import { computeIncentives, usd } from "@/lib/incentives"
+import { usd } from "@/lib/incentives/model"
 import { useToast } from "@/hooks/use-toast"
 import {
   Zap,
@@ -24,22 +24,12 @@ import {
   Truck,
   Plus,
   Minus,
-  MapPin,
   Gift,
 } from "@/components/ui/lucide-icons"
-import Link from "next/link"
 
-function SpecChip({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-}) {
+function SpecChip({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex-1 flex flex-col gap-1 p-3 rounded-xl border bg-white">
+    <div className="flex flex-1 flex-col gap-1 rounded-xl border bg-card p-3">
       <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
         {icon}
         {label}
@@ -55,12 +45,31 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   if (!product) notFound()
 
   const { dispatch } = useCart()
-  const { zip, applied, onApply } = useZip()
+  const { applied, address, results, lookup } = useIncentives()
   const { toast } = useToast()
   const [qty, setQty] = useState(1)
-  const [zipVal, setZipVal] = useState(zip || "")
 
-  const c = computeIncentives(product.id, product.price)
+  // qty-aware: one device entry per unit (mirrors cartToDevices) so the PDP
+  // incentive badge shows the same qty-total that cart/checkout compute. `qty`
+  // is part of the cache key so each quantity caches independently.
+  const devices = useMemo(
+    () =>
+      Array.from({ length: qty }, (_, n) => ({
+        deviceId: product.deviceId,
+        ref: `p${product.id}-${n + 1}`,
+      })),
+    [qty, product.deviceId, product.id],
+  )
+  const cacheKey = `pdp-${product.id}-q${qty}`
+  const state = results[cacheKey]
+  const view = state?.status === "done" ? state.view : undefined
+
+  useEffect(() => {
+    if (applied && !state) {
+      lookup(cacheKey, devices)
+    }
+  }, [applied, address, cacheKey, devices, state, lookup])
+
   const warranty =
     product.category === "Accessory" ? "2 Years" : product.category === "Home" ? "3 Years" : "5 Years"
 
@@ -77,149 +86,117 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         },
       })
     }
-    toast({
-      title: "Added to cart",
-      description: `${qty}× ${product.name} added to your cart.`,
-    })
+    toast({ title: "Added to cart", description: `${qty}× ${product.name} added to your cart.` })
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="container flex h-16 items-center justify-between max-w-[1280px]">
-          <Link href="/" className="flex items-center space-x-2">
-            <Zap className="h-7 w-7 text-primary" />
-            <span className="text-2xl font-bold text-foreground">Comet</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-7">
-            <Link href="/products" className="text-sm font-medium text-primary border-b-2 border-primary pb-1">
-              Products
-            </Link>
-            <Link href="/about" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </Link>
-            <Link href="/support" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Support
-            </Link>
-            <CartDrawer />
-          </nav>
-          <MobileNav />
-        </div>
-      </header>
+      <SiteHeader />
 
-      <div className="container max-w-[1100px] py-7 pb-20">
-        {/* Back link */}
+      <div className="container max-w-[1120px] py-8 pb-20">
         <Link
-          href="/products"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
+          href="/#products"
+          className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to products
+          Back to chargers
         </Link>
 
-        {/* Two-column layout */}
-        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-12 items-start">
-          {/* Left: gallery + spec chips */}
+        <div className="grid items-start gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+          {/* Left: gallery + specs */}
           <div className="flex flex-col gap-4">
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-[380px] object-cover rounded-2xl shadow-lg"
+              className="h-[400px] w-full rounded-2xl border object-cover shadow-md"
             />
             <div className="flex gap-3">
-              <SpecChip
-                icon={<Zap className="h-3.5 w-3.5" />}
-                label="Power"
-                value={product.power}
-              />
-              <SpecChip
-                icon={<Shield className="h-3.5 w-3.5" />}
-                label="Connector"
-                value={product.connector}
-              />
-              <SpecChip
-                icon={<Check className="h-3.5 w-3.5" />}
-                label="Warranty"
-                value={warranty}
-              />
+              <SpecChip icon={<Zap className="h-3.5 w-3.5" />} label="Power" value={product.power} />
+              <SpecChip icon={<Shield className="h-3.5 w-3.5" />} label="Connector" value={product.connector} />
+              <SpecChip icon={<Check className="h-3.5 w-3.5" />} label="Warranty" value={warranty} />
             </div>
           </div>
 
           {/* Right: info + buy */}
           <div className="flex flex-col gap-4">
-            {/* Badges */}
             <div className="flex gap-2">
               <Badge variant="secondary">{product.badge}</Badge>
               <Badge variant="outline">{product.category}</Badge>
             </div>
 
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">{product.name}</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">{product.name}</h1>
 
-            {/* Rating */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span className="flex text-primary">
                 {[0, 1, 2, 3, 4].map((i) => (
                   <Star key={i} className="h-4 w-4 fill-primary" />
                 ))}
               </span>
-              {product.rating} · {product.reviews} reviews
+              <span className="tnum">{product.rating}</span> · {product.reviews} reviews
             </div>
 
-            {/* Description */}
-            <p className="text-[15px] text-muted-foreground leading-relaxed">{product.description}</p>
+            <p className="text-[15px] leading-relaxed text-muted-foreground">{product.description}</p>
 
-            {/* Features */}
             <div className="flex flex-col gap-2">
               {product.features.slice(0, 4).map((f, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-foreground/80">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                   {f}
                 </div>
               ))}
             </div>
 
-            {/* Price / incentive */}
-            <div className="mt-1">
-              {applied ? (
-                <PriceBreakdown productId={product.id} price={product.price} />
-              ) : (
-                <div className="flex items-baseline gap-3">
-                  <span className="text-[30px] font-bold text-primary">{usd(product.price)}</span>
-                  {c.hasAny && (
-                    <span className="text-sm font-medium text-emerald-700">
-                      Save up to {usd(c.oneTimeBack)} — see incentives below
+            {/* Price + eligibility */}
+            <div className="mt-2 rounded-2xl border bg-card p-4">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <span className="tnum text-3xl font-bold text-foreground">{usd(product.price)}</span>
+                  {product.originalPrice && (
+                    <span className="tnum ml-2 text-sm text-muted-foreground line-through">
+                      {usd(product.originalPrice)}
                     </span>
                   )}
                 </div>
-              )}
-            </div>
-
-            {/* Qty + add to cart */}
-            <div className="flex gap-3 items-center mt-1">
-              <div className="flex items-center gap-1 border rounded-xl p-1">
-                <button
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
-                  className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-foreground hover:bg-muted transition-colors"
-                >
-                  <Minus className="h-4 w-4" />
-                </button>
-                <span className="min-w-[28px] text-center font-semibold text-foreground">{qty}</span>
-                <button
-                  onClick={() => setQty((q) => q + 1)}
-                  className="w-8 h-8 rounded-lg inline-flex items-center justify-center text-foreground hover:bg-muted transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+                {view?.eligible ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                    <Gift className="h-4 w-4" />
+                    <span className="tnum">{usd(view.oneTimeBack)}</span> back
+                    {view.ongoingAmount > 0 && (
+                      <span className="tnum text-violet-700">+{usd(view.ongoingAmount)}/yr</span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {applied ? "" : "Incentives available →"}
+                  </span>
+                )}
               </div>
-              <Button size="lg" className="flex-1 gap-2" onClick={addToCart}>
-                <ShoppingCart className="h-5 w-5" />
-                Add to Cart
-              </Button>
+
+              <div className="mt-4 flex items-center gap-3">
+                <div className="flex items-center gap-1 rounded-xl border p-1">
+                  <button
+                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                    className="grid h-9 w-9 place-items-center rounded-lg text-foreground transition-colors hover:bg-muted"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="tnum min-w-7 text-center font-semibold text-foreground">{qty}</span>
+                  <button
+                    onClick={() => setQty((q) => q + 1)}
+                    className="grid h-9 w-9 place-items-center rounded-lg text-foreground transition-colors hover:bg-muted"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+                <Button size="lg" className="flex-1 gap-2" onClick={addToCart}>
+                  <ShoppingCart className="h-5 w-5" />
+                  Add to Cart
+                </Button>
+              </div>
             </div>
 
-            {/* Trust signals */}
             <div className="flex gap-5 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Truck className="h-3.5 w-3.5" /> Free shipping over $500
@@ -231,181 +208,44 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Incentives & programs section */}
-        <div className="mt-14">
-          <div className="flex items-start justify-between flex-wrap gap-3 mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">Incentives &amp; programs</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {applied ? (
-                  <>
-                    Available for this charger in {zip}
-                    {c.hasAny ? (
-                      <>
-                        {" "}— up to{" "}
-                        <strong className="text-emerald-700">{usd(c.oneTimeBack)}</strong> back
-                        {c.vpp > 0 && (
-                          <>
-                            {" "}plus{" "}
-                            <strong className="text-violet-600">{usd(c.vpp)}/yr</strong>
-                          </>
-                        )}
-                        .
-                      </>
-                    ) : (
-                      "."
-                    )}
-                  </>
-                ) : (
-                  "Enter your ZIP to see the programs available where you live."
-                )}
-              </p>
-            </div>
-            {applied && (
-              <button
-                onClick={() => onApply("")}
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                Change ZIP ({zip})
-              </button>
-            )}
+        {/* Incentives — awareness */}
+        <div className="mt-16 border-t pt-10">
+          <div className="mb-5 max-w-2xl">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">Incentives &amp; programs</h2>
+            <p className="mt-1.5 text-muted-foreground">
+              {applied
+                ? `Live eligibility for this charger via the Leap Incentives API${
+                    view?.utilityName ? ` — ${view.utilityName}` : ""
+                  }.`
+                : "Enter your address to see the rebates and programs available where you live."}
+            </p>
           </div>
 
-          {!applied ? (
-            c.hasAny ? (
-              /* ── Teaser: locked savings + "Unlock savings" CTA ── */
-              <div className="rounded-xl border border-emerald-200 overflow-hidden">
-                {/* Header callout — gradient from emerald-50 to violet-50 */}
-                <div className="flex items-center gap-5 px-6 py-5 bg-gradient-to-r from-emerald-50 to-violet-50">
-                  <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center shrink-0">
-                    <Gift className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-widest">
-                      Money back available
-                    </p>
-                    <p className="text-[22px] font-bold text-foreground leading-tight mt-0.5">
-                      Get up to {usd(c.oneTimeBack)} back on this charger
-                      {c.vpp > 0 && (
-                        <span className="text-violet-600 font-semibold text-base"> + {usd(c.vpp)}/yr</span>
-                      )}
-                    </p>
-                    <p className="text-sm text-foreground/70 mt-1">
-                      Paid back to you after purchase through local rebates &amp; programs. Enter your ZIP to see what you qualify for.
-                    </p>
-                  </div>
-                </div>
+          <div className="flex max-w-2xl flex-col gap-4">
+            <AddressPanel />
 
-                {/* Skeleton rows (locked preview) + unlock overlay */}
-                <div className="relative bg-white">
-                  {/* Ghost skeleton rows — no filter, just low-opacity placeholders */}
-                  <div className="p-4 flex flex-col gap-3 opacity-30 select-none pointer-events-none">
-                    {c.programs.map((pg, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
-                        <div className="w-8 h-8 rounded-full bg-slate-300 shrink-0" />
-                        <div className="flex-1 h-3 rounded-full bg-slate-300" />
-                        <div className="w-16 h-4 rounded bg-slate-400" />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Frosted overlay with ZIP input */}
-                  <div className="absolute inset-0 flex items-center justify-center gap-3 px-6 bg-white/70 backdrop-blur-[2px]">
-                    <div className="relative flex items-center">
-                      <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                      <input
-                        value={zipVal}
-                        inputMode="numeric"
-                        placeholder="ZIP code"
-                        maxLength={5}
-                        onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                        onKeyDown={(e) => { if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal) }}
-                        className="w-36 h-11 pl-9 pr-3 rounded-lg border border-input bg-white shadow-sm text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                      />
-                    </div>
-                    <Button
-                      size="lg"
-                      onClick={() => zipVal.length === 5 && onApply(zipVal)}
-                      disabled={zipVal.length !== 5}
-                    >
-                      See money back
-                    </Button>
-                  </div>
-                </div>
+            {applied && (!state || state.status === "loading") && (
+              <div className="animate-pulse rounded-2xl border bg-card p-6 text-sm text-muted-foreground">
+                Checking incentives for your address…
               </div>
-            ) : (
-              /* ── No programs: simple prompt ── */
-              <div className="flex flex-col sm:flex-row gap-3 p-5 rounded-xl bg-emerald-50 border border-emerald-200">
-                <div className="relative flex items-center">
-                  <MapPin className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <input
-                    value={zipVal}
-                    inputMode="numeric"
-                    placeholder="ZIP code"
-                    maxLength={5}
-                    onChange={(e) => setZipVal(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                    onKeyDown={(e) => { if (e.key === "Enter" && zipVal.length === 5) onApply(zipVal) }}
-                    className="w-40 h-11 pl-9 pr-3 rounded-lg border border-input bg-white text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-                <Button
-                  size="lg"
-                  onClick={() => zipVal.length === 5 && onApply(zipVal)}
-                  disabled={zipVal.length !== 5}
+            )}
+            {state?.status === "error" && (
+              <div className="flex items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <span>Couldn&apos;t check incentives: {state.error}</span>
+                <button
+                  onClick={() => lookup(cacheKey, devices)}
+                  className="shrink-0 font-semibold underline"
                 >
-                  See my incentives
-                </Button>
+                  Retry
+                </button>
               </div>
-            )
-          ) : (
-            <ProgramList productId={product.id} price={product.price} zip={zip} />
-          )}
+            )}
+            {view && <IncentiveResults view={view} />}
+          </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-muted/30 py-16">
-        <div className="container max-w-[1280px]">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <Zap className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold">Comet</span>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                Leading the future of electric vehicle charging with innovative, sustainable solutions.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Products</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/products" className="block hover:text-foreground transition-colors">Home Chargers</Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">Commercial</Link>
-                <Link href="/products" className="block hover:text-foreground transition-colors">Accessories</Link>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Support</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/support" className="block hover:text-foreground transition-colors">Installation</Link>
-                <Link href="/support" className="block hover:text-foreground transition-colors">Warranty</Link>
-                <Link href="/support" className="block hover:text-foreground transition-colors">Contact</Link>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm">Company</h4>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <Link href="/about" className="block hover:text-foreground transition-colors">About Us</Link>
-                <Link href="/about" className="block hover:text-foreground transition-colors">Careers</Link>
-                <Link href="/about" className="block hover:text-foreground transition-colors">News</Link>
-              </div>
-            </div>
-          </div>
-          <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-            © 2026 Comet. All rights reserved. Powering the future of transportation.
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   )
 }
