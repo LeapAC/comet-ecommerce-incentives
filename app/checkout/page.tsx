@@ -5,13 +5,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { SiteHeader } from "@/components/site-header"
 import { useCart, type CartItem } from "@/lib/cart-context"
 import { useIncentives, type Address } from "@/lib/incentives/context"
 import { IncentiveResults } from "@/components/incentives/incentive-results"
 import { usd, type IncentiveView } from "@/lib/incentives/model"
 import { cartToDevices } from "@/lib/incentives/cart"
-import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check, Gift, Leaf, Mail } from "@/components/ui/lucide-icons"
+import { Zap, CreditCard, Truck, Shield, ArrowLeft, Check, Gift, Leaf, Mail, ChevronDown } from "@/components/ui/lucide-icons"
 
 // ─── Section card ─────────────────────────────────────────────────────────────
 function Section({
@@ -224,36 +225,44 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          {/* Real Leap email — preview only */}
-          <div className="mt-8 overflow-hidden rounded-2xl border bg-card shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-4 py-3">
-              <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Mail className="h-4 w-4 text-primary" />
-                Your confirmation email
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {order.email ? `To ${order.email}` : "Preview"}
-              </span>
-            </div>
-            <div className="border-b bg-emerald-50/60 px-4 py-2.5 text-[12px] leading-snug text-emerald-800">
-              This is the real email <strong>Leap</strong> sends on Comet&apos;s behalf, shown as a
-              preview. This open-source reference site doesn&apos;t send email — Leap manages delivery
-              for the partner.
-            </div>
-            {order.emailHtml && (
-              <iframe
-                title="Confirmation email preview"
-                srcDoc={order.emailHtml}
-                // Static, JS-free email preview: fully sandboxed (no allow-scripts,
-                // no allow-same-origin) so injected markup can never run with this
-                // origin's privileges. Inline styles + remote <img> still render.
-                sandbox=""
-                tabIndex={-1}
-                loading="lazy"
-                className="h-[560px] w-full bg-white"
-              />
-            )}
-          </div>
+          {/* Real Leap email — collapsed preview */}
+          {order.emailHtml && (
+            <Collapsible className="group mt-8 overflow-hidden rounded-2xl border bg-card shadow-sm">
+              <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-[state=open]:border-b">
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-50 text-primary">
+                    <Mail className="h-4 w-4" />
+                  </span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-sm font-semibold text-foreground">View your confirmation email</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      See the email Leap sent on your behalf
+                    </span>
+                  </span>
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
+                <div className="bg-emerald-50/60 px-4 py-2.5 text-[12px] leading-snug text-emerald-800">
+                  This is the real email <strong>Leap</strong> sends on Comet&apos;s behalf, shown as a
+                  preview. This open-source reference site doesn&apos;t send email — Leap manages delivery
+                  for the partner.
+                  {order.email ? <span className="block text-emerald-700/80">Sent to {order.email}</span> : null}
+                </div>
+                <iframe
+                  title="Confirmation email preview"
+                  srcDoc={order.emailHtml}
+                  // Static, JS-free email preview: fully sandboxed (no allow-scripts,
+                  // no allow-same-origin) so injected markup can never run with this
+                  // origin's privileges. Inline styles + remote <img> still render.
+                  sandbox=""
+                  tabIndex={-1}
+                  loading="lazy"
+                  className="h-[560px] w-full border-t bg-white"
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           <div className="mt-8 flex justify-center">
             <Button asChild>
