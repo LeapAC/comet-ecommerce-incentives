@@ -2,7 +2,7 @@
  * Types for the Leap Incentives partner lookup API.
  *
  * Mirrors the contract published by the Global Connect Service (GCS) at
- * `POST /v1.1/global-connect/incentives/lookups`. See
+ * `POST /beta/incentives/lookups`. See
  * `global-connect-service/src/main/resources/openapi/incentives.yaml` for the
  * source of truth. Only the fields this reference implementation consumes are
  * modelled; unused response fields are typed loosely on purpose.
@@ -38,7 +38,7 @@ export interface CustomerDeviceRef {
   details?: Record<string, string>
 }
 
-/** Request body for POST /v1.1/global-connect/incentives/lookups. */
+/** Request body for POST /beta/incentives/lookups. */
 export interface EligibilityRequest {
   reference_id: string
   address: LeapAddress
@@ -108,7 +108,7 @@ export interface CustomerDeviceRefEcho {
   customer_device_id: string
 }
 
-/** Response body for POST /v1.1/global-connect/incentives/lookups. */
+/** Response body for POST /beta/incentives/lookups. */
 export interface EligibilityResult {
   reference_id: string
   customer_classification: CustomerClassification

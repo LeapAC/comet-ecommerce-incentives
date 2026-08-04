@@ -79,6 +79,35 @@ describe("lookupIncentives — success and error mapping", () => {
     expect(result.incentive_summary.install_amount).toBe(215)
   })
 
+  it("posts to the /beta/incentives/lookups path on the configured base URL", async () => {
+    // Guards the REA-1042 / REA-1077 cutover: GCS dropped the old
+    // `/v1.1/global-connect/incentives/lookups` route with no alias, so a
+    // regression here is a production outage, not a redirect.
+    const fetchMock = vi.fn(
+      async (_url: string, _init: RequestInit) =>
+        new Response(
+          JSON.stringify({
+            reference_id: "ref-1",
+            customer_classification: "RESIDENTIAL",
+            customer_devices: [],
+            connect_url: "https://connect.example/x",
+            incentive_summary: { upfront_amount: 0, install_amount: 0, ongoing_amount: 0 },
+            utilities: { primary: null, possible_utilities: [] },
+            program_details: [],
+          }),
+          { status: 200 },
+        ),
+    )
+    vi.stubGlobal("fetch", fetchMock)
+
+    await lookupIncentives(REQUEST)
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe("https://api.staging.example/beta/incentives/lookups")
+    expect(url).not.toContain("/v1.1/global-connect")
+    expect(init.method).toBe("POST")
+  })
+
   it("maps a non-2xx body to a typed LeapApiError", async () => {
     vi.stubGlobal(
       "fetch",
