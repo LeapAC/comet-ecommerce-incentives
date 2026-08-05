@@ -67,8 +67,12 @@ export function AddressPanel({
     setEditing(false)
   }
 
+  // Panel chrome tracks --primary. The emerald tint it replaced was picked when
+  // the brand itself was emerald; against a blue primary and a blue icon tile it
+  // read as a leftover. The confirmed-address chip above stays green, because
+  // green there means "success", not "brand".
   return (
-    <div className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-card p-4 sm:p-5">
+    <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.07] to-card p-4 sm:p-5">
       <div className="flex items-start gap-3.5">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
           <MapPin className="h-5 w-5" />

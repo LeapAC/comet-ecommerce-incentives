@@ -116,7 +116,12 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b">
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-50/70 via-background to-violet-50/40" />
+        {/* Decorative hero wash, keyed to --primary so it follows the brand.
+            Both ends are the brand blue at different strengths; the violet end
+            it used to have sat within 22 ΔRGB of the Leap Incentives Gateway's
+            own violet, which is the one colour this storefront should not
+            borrow. */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/[0.07] via-background to-primary/[0.04]" />
         <div className="container relative max-w-[1200px] py-16 lg:py-24">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="space-y-7">
