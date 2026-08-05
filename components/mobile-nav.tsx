@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Zap } from "@/components/ui/lucide-icons"
+import { Menu } from "@/components/ui/lucide-icons"
+import { CometMark } from "@/components/comet-mark"
 import { CartDrawer } from "@/components/cart-drawer"
 import Link from "next/link"
 
@@ -22,7 +23,7 @@ export function MobileNav() {
         </SheetTrigger>
         <SheetContent side="right" className="w-80">
           <div className="flex items-center space-x-2 mb-6">
-            <Zap className="h-6 w-6 text-primary" />
+            <CometMark id="mobile" className="h-6 w-6" />
             <span className="text-xl font-bold">Comet</span>
           </div>
           <nav className="flex flex-col space-y-4">

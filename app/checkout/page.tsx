@@ -209,7 +209,10 @@ export default function CheckoutPage() {
         <SiteHeader />
         <div className="container mx-auto max-w-[600px] px-4 py-14">
           <div className="flex flex-col items-center text-center">
-            <span className="grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-primary ring-8 ring-emerald-50/60">
+            {/* Tint follows the icon: this pairs an emerald wash with a
+                text-primary glyph, which only matched while the brand was
+                emerald. Both sides are --primary now. */}
+            <span className="grid h-16 w-16 place-items-center rounded-full bg-primary/10 text-primary ring-8 ring-primary/[0.06]">
               <Check className="h-8 w-8" />
             </span>
             <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground">Order confirmed</h1>
@@ -230,7 +233,7 @@ export default function CheckoutPage() {
             <Collapsible className="group mt-8 overflow-hidden rounded-2xl border bg-card shadow-sm">
               <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 bg-muted/40 px-4 py-3 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset data-[state=open]:border-b">
                 <span className="flex min-w-0 items-center gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald-50 text-primary">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
                     <Mail className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-col">
