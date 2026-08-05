@@ -4,41 +4,50 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Comet — emerald primary (cash-back) on cool-slate neutrals. Darker
-     foreground + faint page tint gives white cards depth and stronger hierarchy. */
+  /* Comet — blue primary drawn from the tail of the comet mark, on cool-slate
+     neutrals. Darker foreground + faint page tint gives white cards depth and
+     stronger hierarchy.
+
+     Hue 252 comes from the mark's cyan-blue tail (#38A0FC, oklch h=249). The
+     violet in the mark's head is deliberately NOT used as a UI colour: at
+     #7240FD it is 22 ΔRGB from the Leap Incentives Gateway's own violet
+     (#7C3AED), and this storefront exists to demonstrate a partner surface
+     with Leap embedded in it. Leading with violet would make the two brands
+     read as one. The tail hue sits 44° away, so the mark still feels native
+     while the store stays visibly its own. */
   --background: oklch(0.99 0.003 240); /* faint cool white */
   --foreground: oklch(0.27 0.02 255); /* ~slate-800 — strong body/heading text */
   --card: oklch(1 0 0); /* pure white cards pop on the tinted page */
   --card-foreground: oklch(0.27 0.02 255);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.27 0.02 255);
-  --primary: oklch(0.5 0.14 162); /* emerald-600 */
+  --primary: oklch(0.55 0.19 252); /* comet blue — 4.84:1 on white, AA */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.55 0.15 160); /* emerald-500 */
+  --secondary: oklch(0.6 0.18 250); /* comet blue, one step lighter */
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.968 0.004 250); /* slate-100 */
   --muted-foreground: oklch(0.52 0.02 255); /* ~slate-500 secondary text */
-  --accent: oklch(0.55 0.15 160);
+  --accent: oklch(0.6 0.18 250);
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.922 0.005 255); /* slate-200 */
   --input: oklch(1 0 0);
-  --ring: oklch(0.5 0.14 162 / 0.45); /* emerald focus ring */
-  --chart-1: oklch(0.45 0.15 160);
-  --chart-2: oklch(0.55 0.15 160);
+  --ring: oklch(0.55 0.19 252 / 0.45); /* comet blue focus ring */
+  --chart-1: oklch(0.45 0.16 254);
+  --chart-2: oklch(0.6 0.18 250);
   --chart-3: oklch(0.35 0 0);
   --chart-4: oklch(0.97 0 0);
   --chart-5: oklch(0.577 0.245 27.325);
   --radius: 0.5rem;
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.35 0 0);
-  --sidebar-primary: oklch(0.45 0.15 160);
+  --sidebar-primary: oklch(0.45 0.16 254);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.55 0.15 160);
+  --sidebar-accent: oklch(0.6 0.18 250);
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.45 0.15 160 / 0.3);
+  --sidebar-ring: oklch(0.45 0.16 254 / 0.3);
 }
 
 .dark {
@@ -48,32 +57,32 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.55 0.15 160); /* Lighter emerald for dark mode */
+  --primary: oklch(0.62 0.17 250); /* lighter comet blue for dark mode */
   --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.55 0.15 160);
+  --accent: oklch(0.62 0.17 250);
   --accent-foreground: oklch(0.145 0 0);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
-  --ring: oklch(0.55 0.15 160 / 0.5);
-  --chart-1: oklch(0.55 0.15 160);
-  --chart-2: oklch(0.696 0.17 162.48);
+  --ring: oklch(0.62 0.17 250 / 0.5);
+  --chart-1: oklch(0.62 0.17 250);
+  --chart-2: oklch(0.72 0.15 245);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.55 0.15 160);
+  --sidebar-primary: oklch(0.62 0.17 250);
   --sidebar-primary-foreground: oklch(0.145 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.55 0.15 160 / 0.3);
+  --sidebar-ring: oklch(0.62 0.17 250 / 0.3);
 }
 
 @theme inline {
