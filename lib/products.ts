@@ -17,7 +17,7 @@ export interface Product {
    * in the Incentives lookup so the API can determine eligible programs.
    *
    * These are REAL catalog device IDs discovered via
-   * `GET /v1.1/global-connect/incentives/devices/search` on staging. Comet's
+   * `GET /beta/incentives/devices/search` on staging. Comet's
    * products are fictional, so the pairing is illustrative — each maps to a
    * representative real device of the right class (Level 2 EV charger, etc.).
    */

@@ -17,7 +17,7 @@ import type {
  * (The gateway does not accept `x-api-key` for these routes.)
  */
 
-const LOOKUP_PATH = "/v1.1/global-connect/incentives/lookups"
+const LOOKUP_PATH = "/beta/incentives/lookups"
 
 /**
  * Bounded timeout for the upstream lookup. Without it, a slow/unreachable Leap

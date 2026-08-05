@@ -29,7 +29,7 @@ PDP and complete an order.
 > programs, Connect URLs, and applications — lives at
 > **[docs.incentives.leap.energy](https://docs.incentives.leap.energy)**. Comet
 > integrates Leap's **Global Connect** partner‑lookup surface
-> (`POST /v1.1/global-connect/incentives/lookups`, Bearer partner key). This
+> (`POST /beta/incentives/lookups`, Bearer partner key). This
 > README documents that surface and the reference‑implementation specifics
 > (device‑ID mapping, server‑only key, staging, email preview) rather than
 > restating the platform docs.
@@ -45,7 +45,7 @@ browser: the client calls an internal Next.js route handler, which calls Leap.
    │  lookupIncentives()  ── Authorization: Bearer $LEAP_API_KEY
    ▼
  Leap Incentives API
-   POST $LEAP_API_BASE_URL/v1.1/global-connect/incentives/lookups
+   POST $LEAP_API_BASE_URL/beta/incentives/lookups
 ```
 
 - **Client** ([`lib/leap/client.ts`](lib/leap/client.ts)) is marked
@@ -98,7 +98,7 @@ Every product carries a **real Leap device‑catalog UUID**
 category + serving utility. IDs were discovered via the catalog search endpoint:
 
 ```
-GET $LEAP_API_BASE_URL/v1.1/global-connect/incentives/devices/search?q=<text>
+GET $LEAP_API_BASE_URL/beta/incentives/devices/search?q=<text>
 Authorization: Bearer <LEAP_API_KEY>
 ```
 
